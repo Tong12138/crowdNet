@@ -1,0 +1,31 @@
+# crypto-config.yaml
+OrdererOrgs: 				# 排序组织
+  - Name: OrgOrderer  			# 排序节点组织名称
+    Domain: crowd.com  	# 排序节点组织的根域名
+    Specs: 
+      - Hostname: orderer   # 排序节点主机名, 访问该排序节点的域名: orderer.crowd.com
+                            # “Spec”的作用是不受下面的Template模板生成规则影响，个性化指定一个域名
+
+PeerOrgs:
+  - Name: OrgReq    			  # 组织Org1名称
+    Domain: orgreq.crowd.com  # 组织Org1的域名
+    EnableNodeOUs: true  	  # Node.js支持，java的sdk里面默认是注释掉的
+   
+    Template:  	# 根据上面注释的模板生成2套公私钥+证书，默认生成规则是peer0-9.组织的域名
+      Count: 2  # 即生成peer0.orgreq.crowd.com、peer1.orgreq.crowd.com 两个节点的公私钥和证     
+    Users:  	# 除了admin用户，额外生成一个普通用户
+      Count: 3	# 普通用户个数为3
+  - Name: OrgWork
+    Domain: orgwork.crowd.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 2
+  # - Name: OrgValid
+  #   Domain: orgvalid.crowd.com
+  #   EnableNodeOUs: true
+  #   Template:
+  #     Count: 5
+  #   Users:
+  #     Count: 6

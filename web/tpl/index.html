@@ -1,0 +1,52 @@
+{{/*
+    author: yyt
+*/}}
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+
+<div class="common menu">
+    <ul>
+	<li><a href="/index.html"><img src="/static/img/9.png" width="120px" height="50px"/></a></li>
+        <li><a href="/queryReq?name=yyt">查询信息</a></li>
+        <li><a href="/setInfo.html">设置/修改</a></li>
+    </ul>
+</div>
+
+<div class="common main">
+    <div class="content">
+        <div class="msg" style="margin-top: 30px; font-size: 20px;">
+            欢迎您来到 CrowdNet
+        </div>
+        <div class="calink">
+            <a href="/setInfo.html">设置/修改</a><br/>
+            <a href="/queryReq?name=yyt">查询信息</a><br>
+        </div>
+        <div>
+            <form>
+                Taskid: <input type="text" name="taskid", placeholder="请输入任务名称" required="required"> 
+                <button  type="submit" formaction="/createChannel" formmethod="post">创建通道</button>
+            </form>
+            
+        </div>
+
+        <form>
+            <button  type="submit" formaction="/changeChannel" formmethod="post">更改通道</button>
+        </form>
+
+        <div >
+            result:&nbsp;&nbsp;&nbsp;&nbsp;{{.Msg}}
+        </div>
+    </div>
+</div>
+
+<div class="common footer">
+    一个简单的 Hyperledger Fabric-SDK-GO 的Web应用示例.
+</div>
+
+</body>
+</html>

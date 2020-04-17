@@ -1,0 +1,256 @@
+name: "Demo-network"
+
+version: 1.0.0
+
+client:
+  organization: OrgReq
+
+  logging:
+    level: info
+
+  eventService:
+    type: deliver
+
+  cryptoconfig:
+    path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config
+
+  credentialStore:
+    path: /tmp/Demo-store
+
+    cryptoStore:
+      path: /tmp/Demo-msp
+
+  BCCSP:
+    security:
+      enabled: true
+      default:
+        provider: "SW"
+      hashAlgorithm: "SHA2"
+      softVerify: true
+      level: 256
+
+  tlsCerts:
+    systemCertPool: false
+
+    client: 
+      key:
+        path:
+      cert:
+        path:
+
+channels:
+  mychannel:
+    orderers:
+      - orderer.crowd.com
+    peers:
+      peer0.orgreq.crowd.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+
+      peer1.orgreq.crowd.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+
+  testchannel:
+    orderers:
+      - orderer.crowd.com
+    peers:
+      peer0.orgreq.crowd.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+
+      peer1.orgreq.crowd.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+
+      # peer0.orgwork.crowd.com:
+      #   endorsingPeer: true
+      #   chaincodeQuery: true
+      #   ledgerQuery: true
+      #   eventSource: true
+
+      # peer1.orgwork.crowd.com:
+      #   endorsingPeer: true
+      #   chaincodeQuery: true
+      #   ledgerQuery: true
+      #   eventSource: true
+
+
+    policies:
+      queryChannelConfig:
+        minResponses: 1
+        maxTargets: 1
+        retryOpts: 
+          attempts: 5
+          initialBackoff: 500ms
+          maxBackoff: 5s
+          backoffFactor: 2.0
+
+      # discovery:
+      #   maxTargets: 2
+      #   retryOpts:
+      #     attempts: 4
+      #     initialBackoff: 500ms
+      #     maxBackoff: 5s
+      #     backoffFactor: 2.0
+
+      # eventService:
+      # deliver:
+      #   resolverStrategy: PreferOrg
+      #   balancer: Random
+      #   blockHeightLagThreshold: 5
+      #   reconnectBlockHeightLagThreshold: 10 
+      #   peerMonitorPeriod: 5s
+
+organizations:
+  OrgReq:
+    mspid: OrgReqMSP
+    cryptoPath: peerOrganizations/orgreq.crowd.com/users/{userName}@orgreq.crowd.com/msp
+    peers: 
+      - peer0.orgreq.crowd.com
+      - peer1.orgreq.crowd.com
+
+    certificateAuthorities:
+      - ca.orgreq.crowd.com
+
+  OrgWork:
+    mspid: OrgWorkMSP
+    cryptoPath: peerOrganizations/orgwork.crowd.com/users/{userName}@orgwork.crowd.com/msp
+    peers:
+      - peer0.orgwork.crowd.com
+      - peer1.orgwork.crowd.com
+
+  OrdererOrg:
+    mspID: "OrgOrdererMSP"
+    cryptoPath: ordererOrganizations/crowd.com/users/{userName}@crowd.com/msp
+
+orderers:
+  orderer.crowd.com:
+    url: localhost:7050
+
+    grpcOptions:
+      ssl-target-name-override: orderer.crowd.com
+
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
+
+    tlsCACerts:
+      path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/ordererOrganizations/crowd.com/tlsca/tlsca.crowd.com-cert.pem 
+
+peers:
+  peer0.orgreq.crowd.com:
+    url: localhost:7051
+    eventUrl: localhost:7053
+
+    grpcOptions:
+      ssl-target-name-override: peer0.orgreq.crowd.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
+
+    tlsCACerts:
+      path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgreq.crowd.com/tlsca/tlsca.orgreq.crowd.com-cert.pem 
+
+  peer1.orgreq.crowd.com:
+    url: localhost:8051
+    eventUrl: localhost:8053
+
+    grpcOptions:
+      ssl-target-name-override: peer1.orgreq.crowd.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
+
+    tlsCACerts:
+      path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgreq.crowd.com/tlsca/tlsca.orgreq.crowd.com-cert.pem 
+  
+  peer0.orgwork.crowd.com:
+    url: localhost:9051
+    eventUrl: localhost:9053
+    grpcOptions:
+      ssl-target-name-override: peer0.orgwork.crowd.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
+
+    tlsCACerts:
+      path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgwork.crowd.com/tlsca/tlsca.orgwork.crowd.com-cert.pem 
+  
+  peer1.orgwork.crowd.com:
+    url: localhost:10051
+    eventUrl: localhost:10053
+    grpcOptions:
+      ssl-target-name-override: peer1.orgwork.crowd.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
+
+    tlsCACerts:
+      path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgwork.crowd.com/tlsca/tlsca.orgwork.crowd.com-cert.pem 
+  
+
+
+certificateAuthorities:
+  ca.orgreq.crowd.com:
+    url: http://localhost:7054
+    tlsCACerts:
+      path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgreq.crowd.com/ca/ca.orgreq.crowd.com-cert.pem 
+
+    registrar:
+      enrollId: admin
+      enrollSecret: adminpw
+    caName: ca.orgreq.crowd.com
+
+  ca.orgwork.crowd.com:
+    url: http://localhost:9054
+    tlsCACerts:
+      path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgwork.crowd.com/ca/ca.orgwork.crowd.com-cert.pem 
+
+    registrar:
+      enrollId: admin
+      enrollSecret: adminpw
+    caName: ca.orgwork.crowd.com
+
+# entityMatchers:
+#   peer:
+#     - pattern: (\w*)peer0.orgreq.crowd.com(\w*)
+#       urlSubstitutionExp: localhost:7051
+#       eventUrlSubstitutionExp: localhost:7053
+#       sslTargetOverrideUrlSubstitutionExp: peer0.orgreq.crowd.com
+#       mappedHost: peer0.orgreq.crowd.com
+
+#     - pattern: (\w*)peer1.orgreq.crowd.com(\w*)
+#       urlSubstitutionExp: localhost:8051
+#       eventUrlSubstitutionExp: localhost:8053
+#       sslTargetOverrideUrlSubstitutionExp: peer1.orgreq.crowd.com
+#       mappedHost: peer1.orgreq.crowd.com
+
+#   orderer:
+#     - pattern: (\w*)orderer.crowd.com(\w*)
+#       urlSubstitutionExp: localhost:7050
+#       sslTargetOverrideUrlSubstitutionExp: orderer.crowd.com
+#       mappedHost: orderer.crowd.com
+
+#   certificateAuthorities:
+#     - pattern: (\w*)ca.orgreq.crowd.com(\w*)
+#       urlSubstitutionExp: http://localhost:7054
+#       mappedHost: ca.orgreq.crowd.com
