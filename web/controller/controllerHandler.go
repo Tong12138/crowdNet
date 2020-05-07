@@ -6,12 +6,47 @@ package controller
 import (
 	"net/http"
 	"github.com/hyperledger/Demo/service"
+	"encoding/json"
+	// "fmt"
 )
 
 var channelname string = "mychannel"
 
 type Application struct {
 	Fabric *service.ServiceSetup
+}
+
+
+func (app *Application) HomeView(w http.ResponseWriter, r *http.Request){
+	msg, err := app.Fabric.Gettask(channelname)
+	data := &struct{
+		Title string
+		Msg string
+		Tasks *[]map[string]interface{}
+	}{
+		Title:"BUAA",
+		Msg:"",
+		Tasks: nil,
+	}
+	if err!=nil{
+		data.Msg = err.Error()
+		showView(w, r, "home.html", data)
+		return
+	}
+	// resultMap:=make(map[string]map[string]interface{})
+    var tasks []map[string]interface{}
+	// tasks := make([]*Task, 0)
+	err = json.Unmarshal([]byte(msg), &tasks)
+	// fmt.Println(tasks)
+	if err != nil {
+		data.Msg = err.Error()
+		showView(w, r, "home.html", data)
+		return
+	}else{
+		data.Tasks = &tasks
+	}
+
+	showView(w, r, "home.html", data)
 }
 
 func (app *Application) IndexView(w http.ResponseWriter, r *http.Request){

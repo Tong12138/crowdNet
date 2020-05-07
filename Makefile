@@ -1,6 +1,6 @@
 .PHONY: all dev clean build env-up env-down run destroy
 
-all: clean build env-up run
+all: clean env-up
 
 dev: build run
 

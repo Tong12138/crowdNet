@@ -1,0 +1,124 @@
+{{template "base" .}}
+  <section class="hero is-medium is-info is-light">
+  <div class="hero-body">
+      <div class="columns">
+          <div class="column is-10 is-offset-1">
+              <section class="hero landing-left">
+                  <div>
+                      <div>
+                          <h1 class="title has-text-centered has-text-weight-bold">
+                              <div>
+                                  <span class="no-wrap"> ACT-BUAA </span>
+                              </div>
+                              <div>
+                                  <p>Make Industy Better!</p>
+                              </div>
+                          </h1>
+                          <h2 class="subtitle"></h2>
+                      </div>
+                  </div>
+              </section>
+          </div>
+      </div>
+      <div class="columns">
+          <div class="column is-6-fullhd is-6-desktop is-6-tablet is-offset-3-fullhd is-offset-3-desktop is-offset-3-tablet"><div class="get-started-transparent">
+              <div keep-first="true">
+                  <div class="get-started-section">
+                      <div class="field is-grouped">
+                          <input class="input" placeholder="Search a task">
+                          <a class="button is-primary">Search</a>
+                          <a class="button is-primary" href="/release">发布需求</a>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+  </div>
+  </section>
+  <div class="section">
+        <div class="container">
+            <div class="columns" style="margin-bottom: 0px;">
+                <div class="column">
+                    <meta content="Find the best Sivvy alternatives based on our research Microsoft Azure Active Directory, Oracle Identity Manager, Okta, Centrify, and OneLogin." itemprop="description">
+                    <div class="tabs-title no-transform">
+                    <h1 class="title is-3" itemprop="name headline">Tasks List</h1>
+
+                    </div>
+                </div>
+                </div>
+            <div class="columns">
+              <main class="column">
+                </h3>
+                  <div class="tabs">
+                    <ul>
+                    <li class="is-active"><a href="#">活跃中</a></li>
+                    <li><a href="#" rel="nofollow">已经完成</a></li>
+                    <li><a href="#" rel="nofollow">TOP</a></li>
+                    </ul>
+                  </div>
+                <ol class="services-list">
+                    {{ range $task := .Tasks }}
+                    <li class="box">
+                        <div class="media-content">
+                            <div class="content">
+                                <div class="title-columns columns is-gapless is-mobile">
+                                    <div class="column">
+                                        <h3 class="title is-4">
+                                            <a class="prefetch" href="/task/{{ $task.id }}"><span class="badge-verified"></span>{{$task.name}}</a>
+                                        </h3>
+                                    </div>
+                                </div>
+                              <p class="tagline text-small">{{ ($task.detail)}}</p>
+                            </div>
+                            <div class="columns is-mobile">
+                                <div class="column">
+                                    <p>reward: {{ $task.reward }}</p>
+                                </div>
+                                <div class="column is-narrow">
+                                    <p>release time: {{ $task.deadline }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    {{end}}
+                </ol>
+              </main>
+                <aside class="column is-narrow sidebar">
+                    <h3 class="title boxed-section-title is-2 text-center">&nbsp;</h3>
+                    <div class="box">
+                        <h5 class="title is-4">Categories</h5>
+                        <ul class="sidebar-categories-list">
+                        <li>
+                        <a class="prefetch" href="">Identity And Access Management</a>
+                        </li>
+                        <li>
+                        <a class="prefetch" href="">Access Control</a>
+                        </li>
+                        <li>
+                        <a class="prefetch" href="">Security</a>
+                        </li>
+                        <li>
+                        <a class="prefetch" href="">Onboarding Software</a>
+                        </li>
+                        </ul>
+                    </div>
+                    <div class="box">
+                        <h5 class="title is-4">Popular Categories</h5>
+                        <ul class="sidebar-categories-list">
+                        <li><a class="prefetch" href="">3D</a></li>
+                        <li><a class="prefetch" href="">Accounting</a></li>
+                        <li><a class="prefetch" href="">Action</a></li>
+                        <li><a class="prefetch" href="">Adventure</a></li>
+                        <li><a class="prefetch" href="">Analytics</a></li>
+                        <li><a class="prefetch" href="">Blogging Platform</a></li>
+                        <li><a class="prefetch" href="">CMS</a></li>
+                        <li><a class="prefetch" href="">CRM</a></li>
+                        </ul>
+                    </div>
+              </aside>
+            </div>
+        </div>
+  </div>
+
+{{template "foot"}}

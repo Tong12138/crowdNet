@@ -49,6 +49,7 @@ services:
     - ../crypto-config/peerOrganizations/orgreq.crowd.com/ca/:/etc/hyperledger/fabric-ca-server-config
 
 
+
   peer0.orgreq.crowd.com:
     container_name: peer0.orgreq.crowd.com
     extends:
@@ -64,7 +65,7 @@ services:
         - /var/run/:/host/var/run/
         - ../crypto-config/peerOrganizations/orgreq.crowd.com/peers/peer0.orgreq.crowd.com/msp:/etc/hyperledger/fabric/msp
         - ../crypto-config/peerOrganizations/orgreq.crowd.com/peers/peer0.orgreq.crowd.com/tls:/etc/hyperledger/fabric/tls
-        # - peer0.orgreq.crowd.com:/var/hyperledger/production
+        - peer0.orgreq.crowd.com:/var/hyperledger/production
     ports:
       - 7051:7051
       - 7053:7053
@@ -84,7 +85,7 @@ services:
         - /var/run/:/host/var/run/
         - ../crypto-config/peerOrganizations/orgreq.crowd.com/peers/peer1.orgreq.crowd.com/msp:/etc/hyperledger/fabric/msp
         - ../crypto-config/peerOrganizations/orgreq.crowd.com/peers/peer1.orgreq.crowd.com/tls:/etc/hyperledger/fabric/tls
-        # - peer1.orgreq.crowd.com:/var/hyperledger/production
+        - peer1.orgreq.crowd.com:/var/hyperledger/production
 
     ports:
       - 8051:7051

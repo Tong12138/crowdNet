@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/fab"
-	"github.com/hyperledger/Demo/sdkInit"
+	"github.com/hyperledger/crowdsourcing/Demo/sdkInit"
 )
 
 type ServiceSetup struct{

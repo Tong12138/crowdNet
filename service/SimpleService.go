@@ -16,13 +16,84 @@ import(
 	yaml "gopkg.in/yaml.v2"
 	"os/exec"
 	"github.com/hyperledger/fabric-sdk-go/pkg/core/config"
-	"github.com/hyperledger/Demo/sdkInit"
+	"github.com/hyperledger/crowdsourcing/Demo/sdkInit"
+	"time"
+
 )
 
 const (
 	ChaincodeVersion = "1.0"
 	ConfigFile = "config.yaml"
 )
+
+func (t *ServiceSetup) Register(name, info, channelname string)(string, error){
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "userRegister", Args: [][]byte{[]byte(name), []byte(info)}}
+	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
+	if err != nil{
+		return "", err
+	}
+	return string(response.TransactionID), nil
+}
+func (t *ServiceSetup) Recharge(num, channelname string)(string, error){
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "recharge", Args: [][]byte{[]byte(num)}}
+	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
+	if err != nil{
+		return "", err
+	}
+	return string(response.TransactionID), nil
+}
+
+func(t *ServiceSetup) Getuser(channelname string)(string, error){
+	req := channel.Request{ChaincodeID:t.ChaincodeID, Fcn:"userQuery", Args:[][]byte{}}
+	response,err := (*(t.Environment))[channelname].ChannelClient.Query(req)
+	if err != nil{
+		return "", err
+	}
+	return string(response.Payload), nil
+}
+
+func(t * ServiceSetup) Getusers(channelname string)(string, error){
+
+	req := channel.Request{ChaincodeID:t.ChaincodeID, Fcn:"alluserQuery", Args:[][]byte{}}
+	response,err := (*(t.Environment))[channelname].ChannelClient.Query(req)
+	if err != nil{
+		return "", err
+	}
+	return string(response.Payload), nil
+}
+
+
+func (t *ServiceSetup) Posttask(Name, idd, Type, detail, reward,  requirement, channelname  string, posttime, receivetime,  deadline time.Time)(string, error){
+
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskPost", Args: [][]byte{[]byte(Name), []byte(idd), []byte(Type), []byte(detail),[]byte(reward), []byte(posttime.Format("2006-01-02 15:04:05")), []byte(receivetime.Format("2006-01-02 15:04:05")), []byte(deadline.Format("2006-01-02 15:04:05")), []byte(requirement)}}
+	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
+
+	if err != nil{
+		return "", err
+	}
+
+	return string(response.TransactionID), nil
+}
+
+func(t *ServiceSetup) Gettask(taskid, channelname string)(string, error){
+	req := channel.Request{ChaincodeID:t.ChaincodeID, Fcn:"taskQuery", Args:[][]byte{[]byte(taskid)}}
+	response,err := (*(t.Environment))[channelname].ChannelClient.Query(req)
+	if err != nil{
+		return "", err
+	}
+	return string(response.Payload), nil
+}
+
+
+func(t * ServiceSetup) Gettasks(channelname string)(string, error){
+
+	req := channel.Request{ChaincodeID:t.ChaincodeID, Fcn:"alltaskQuery", Args:[][]byte{}}
+	response,err := (*(t.Environment))[channelname].ChannelClient.Query(req)
+	if err != nil{
+		return "", err
+	}
+	return string(response.Payload), nil
+}
 
 
 func (t *ServiceSetup) SetInfo(name, num, channelname string)(string, error){
