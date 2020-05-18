@@ -13,7 +13,6 @@ import(
 	"github.com/hyperledger/fabric-sdk-go/pkg/fab/ccpackager/gopackager"
 	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/common/cauthdsl"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
-
 )
 
 const ChaincodeVersion = "1.0"
@@ -49,6 +48,95 @@ func CreateSourceClient(envir *Environ, info *InitInfo) error{
 	return nil
 }
 
+func Register(envir *Environ, username, password string) error{
+
+ 	ctx := envir.Sdk.Context()
+    c, err := mspclient.New(ctx)
+    if err != nil{
+    	fmt.Println("failed to create msp client")
+    	return err
+    }
+
+    department := "org1.department1"
+
+	request := &mspclient.RegistrationRequest{
+		Name:        username,
+		Type:        "client",
+		Affiliation: department,
+		Secret:      password,
+	}
+
+    secret, err := c.Register(request)
+	if err != nil {
+		fmt.Printf("register %s [%s]\n", username, err)
+		return err
+	}
+	fmt.Printf("register %s successfully,with password %s\n", username, secret)
+	return nil
+}
+
+func Enroll(envir *Environ, username, password string) error{
+
+ 	ctx := envir.Sdk.Context()
+    c, err := mspclient.New(ctx)
+    if err != nil{
+    	fmt.Println("failed to create msp client")
+    	return err
+    }
+
+    err = c.Enroll(username, mspclient.WithSecret(password))
+
+    if err!= nil{
+    	fmt.Println("fail to enroll user: %s\n", username)
+    	return err
+    }
+
+	fmt.Printf("User %s successfully enrolled.\n", username)
+	return nil
+	// Create new identity
+	// newIdentity, err := c.CreateIdentity(req)
+	// if err != nil {
+	// 	fmt.Println("Create identity failed: %s", err)
+	// }
+
+	// if newIdentity.Secret == "" {
+	// 	fmt.Println("Secret should have been generated")
+	// }
+
+	// identity, err := c.GetIdentity(username)
+	// if err != nil {
+	// 	fmt.Println("get identity failed: %s", err)
+	// }
+
+	// fmt.Println("Get Identity: [%v]:", identity)
+
+	// if !verifyIdentity(req, identity) {
+	// 	fmt.Println("verify identity failed req=[%v]; resp=[%v] ", req, identity)
+	// }
+
+	// return err
+
+}
+
+func Geidd(envir *Environ){
+
+ 	ctx := envir.Sdk.Context()
+    c, err := mspclient.New(ctx)
+    if err != nil{
+    	fmt.Println("failed to create msp client")
+    	// return err
+    }
+
+	identity, err := c.GetSigningIdentity("userwang")
+	if err != nil {
+	    fmt.Printf("Get identities return error %s\n", err)
+	    // return
+	}
+	// fmt.Printf("identity '%s' retrieved\n", identity.ID)
+	fmt.Println(identity.PublicVersion())
+	
+}
+
 func CreateChannel(envir *Environ, info *InitInfo) error{
 	
 	mspClient, err := mspclient.New(envir.Sdk.Context(), mspclient.WithOrg(info.OrgName))
@@ -71,9 +159,8 @@ func CreateChannel(envir *Environ, info *InitInfo) error{
 	fmt.Println("通道已成功创建")
 
 	return nil
-
-
 } 
+
 func JoinChannel(envir *Environ, info *InitInfo) error{
 	err := envir.OrgResMgmt.JoinChannel(info.ChannelID, resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithOrdererEndpoint(info.OrdererOrgName))
 	if err != nil{
@@ -83,18 +170,19 @@ func JoinChannel(envir *Environ, info *InitInfo) error{
 	fmt.Println("peers 已成功加入通道")
 	return nil
 }  
-func InstallAndInstantiateCC (envir *Environ, info *InitInfo) (*channel.Client, error){
+
+func InstallAndInstantiateCC (envir *Environ, info *InitInfo) error{
 	fmt.Println("开始安装链码...")
 	ccPkg, err := gopackager.NewCCPackage(info.ChaincodePath, info.ChaincodeGoPath)
 	if err!=nil{
-		return nil, fmt.Errorf("创建链码包失败：%v", err)
+		return fmt.Errorf("创建链码包失败：%v", err)
 	}
 
 	installCCReq := resmgmt.InstallCCRequest{Name: info.ChaincodeID, Path: info.ChaincodePath, Version: ChaincodeVersion, Package: ccPkg}
     
     _, err = envir.OrgResMgmt.InstallCC(installCCReq, resmgmt.WithRetry(retry.DefaultResMgmtOpts))
     if err!=nil{
-    	return nil, fmt.Errorf("安装链码失败: %v", err)
+    	return fmt.Errorf("安装链码失败: %v", err)
     }
     fmt.Println("指定的链码安装成功")
     fmt.Println("开始实例化链码....")
@@ -106,18 +194,33 @@ func InstallAndInstantiateCC (envir *Environ, info *InitInfo) (*channel.Client, 
     _, err= envir.OrgResMgmt.InstantiateCC(info.ChannelID, instantiateCCReq, resmgmt.WithRetry(retry.DefaultResMgmtOpts))
 
     if err != nil{
-    	return nil, fmt.Errorf("实例化链码失败：%v", err)
+    	return fmt.Errorf("实例化链码失败：%v", err)
     }
 
     fmt.Println("实例化链码成功")
+    // return nil
 
     clientChannelContext := envir.Sdk.ChannelContext(info.ChannelID, fabsdk.WithUser(info.UserName), fabsdk.WithOrg(info.OrgName))
 
-    channelClient, err := channel.New(clientChannelContext)
+    envir.ChannelClient, err = channel.New(clientChannelContext)
     if err!=nil{
-    	return nil, fmt.Errorf("创建应用通道客户端失败: %v", err)
+    	return fmt.Errorf("创建应用通道客户端失败: %v", err)
     }
 
     fmt.Println("通道客户端创建成功， 可用此客户端调用链码进行查询或执行事务")
-    return channelClient, nil
+    return  nil
+}
+
+func CreateChannelClient(envir *Environ, info *InitInfo, name string)error{
+	var err error
+	clientChannelContext := envir.Sdk.ChannelContext(info.ChannelID, fabsdk.WithUser(name), fabsdk.WithOrg(info.OrgName))
+    envir.ChannelClient, err = channel.New(clientChannelContext)
+
+    // environment[initInfo.ChannelID].ChannelClient, err := channel.New(clientChannelContext)
+    if err!=nil{
+    	return fmt.Errorf("创建应用通道客户端失败: %v", err)
+    }
+
+    fmt.Println("通道客户端创建成功， 可用此客户端调用链码进行查询或执行事务")
+    return nil
 }

@@ -38,16 +38,16 @@ services:
       file: base/docker-compose-base.yaml
       service: ca.orgreq.crowd.com
     container_name: ca.orgreq.crowd.com
-    networks:
+    networks: 
       - crowdNet
 
-  ca.orgwork.crowd.com:
-    extends:
-      file: base/docker-compose-base.yaml
-      service: ca.orgwork.crowd.com
-    container_name: ca.orgwork.crowd.com
-    networks:
-      - crowdNet
+  # ca.orgwork.crowd.com:
+  #   extends:
+  #     file: base/docker-compose-base.yaml
+  #     service: ca.orgwork.crowd.com
+  #   container_name: ca.orgwork.crowd.com
+  #   networks:
+  #     - crowdNet
 
   peer0.orgreq.crowd.com: # 定义的第2个服务名
     container_name: peer0.orgreq.crowd.com
@@ -151,7 +151,7 @@ services:
     depends_on: # 指定了容器的启动顺序, 下边5个服务全部启动之后, 启动cli服务
       - orderer.crowd.com         # 定义的服务器名1
       - ca.orgreq.crowd.com
-      - ca.orgwork.crowd.com
+      # - ca.orgwork.crowd.com
       - peer0.orgreq.crowd.com    # 定义的服务器名2
       - peer1.orgreq.crowd.com    # 定义的服务器名3
       - peer0.orgwork.crowd.com   # 定义的服务器名4

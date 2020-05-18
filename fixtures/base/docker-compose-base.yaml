@@ -38,15 +38,19 @@ services:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
       - FABRIC_CA_SERVER_CA_NAME=ca.orgreq.crowd.com
       - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.orgreq.crowd.com-cert.pem
-      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/90f0e30a95f1265c3c3e7f44bee01e3805518718eaf8362c4fb9e732882bde85_sk
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/bd52570fe3170f5fe2310e739d5395630da560c49800636b0004d8a57dfa43e4_sk
       - FABRIC_CA_SERVER_TLS_ENABLED=true
+      # - FABRIC_CA_SERVER_TLS_ENABLED=false
+
       - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.orgreq.crowd.com-cert.pem
-      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/90f0e30a95f1265c3c3e7f44bee01e3805518718eaf8362c4fb9e732882bde85_sk
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/bd52570fe3170f5fe2310e739d5395630da560c49800636b0004d8a57dfa43e4_sk
     ports:
       - 7054:7054
     command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
+    # command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.orgreq.crowd.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/bd52570fe3170f5fe2310e739d5395630da560c49800636b0004d8a57dfa43e4_sk -b admin:adminpw -d'
     volumes:
-    - ../crypto-config/peerOrganizations/orgreq.crowd.com/ca/:/etc/hyperledger/fabric-ca-server-config
+      - ../crypto-config/peerOrganizations/orgreq.crowd.com/ca/:/etc/hyperledger/fabric-ca-server-config
+
 
 
 
@@ -91,22 +95,22 @@ services:
       - 8051:7051
       - 8053:7053
 
-  ca.orgwork.crowd.com:
-    container_name: ca.orgwork.crowd.com
-    image: hyperledger/fabric-ca:latest
-    environment:
-      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
-      - FABRIC_CA_SERVER_CA_NAME=ca.orgwork.crowd.com
-      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.orgwork.crowd.com-cert.pem
-      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/bd68ee50200a5810c24321de357dfcab0bb361e2d3e9ba1e7ba0faed2d806a09_sk
-      - FABRIC_CA_SERVER_TLS_ENABLED=true
-      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.orgwork.crowd.com-cert.pem
-      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/bd68ee50200a5810c24321de357dfcab0bb361e2d3e9ba1e7ba0faed2d806a09_sk
-    ports:
-      - 9054:9054
-    command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
-    volumes:
-    - ../crypto-config/peerOrganizations/orgwork.crowd.com/ca/:/etc/hyperledger/fabric-ca-server-config
+  # ca.orgwork.crowd.com:
+  #   container_name: ca.orgwork.crowd.com
+  #   image: hyperledger/fabric-ca:latest
+  #   environment:
+  #     - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+  #     - FABRIC_CA_SERVER_CA_NAME=ca.orgwork.crowd.com
+  #     - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.orgwork.crowd.com-cert.pem
+  #     - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/bd68ee50200a5810c24321de357dfcab0bb361e2d3e9ba1e7ba0faed2d806a09_sk
+  #     - FABRIC_CA_SERVER_TLS_ENABLED=true
+  #     - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.orgwork.crowd.com-cert.pem
+  #     - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/bd68ee50200a5810c24321de357dfcab0bb361e2d3e9ba1e7ba0faed2d806a09_sk
+  #   ports:
+  #     - 9054:9054
+  #   command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
+  #   volumes:
+  #   - ../crypto-config/peerOrganizations/orgwork.crowd.com/ca/:/etc/hyperledger/fabric-ca-server-config
 
 
   peer0.orgwork.crowd.com:

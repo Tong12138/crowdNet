@@ -26,7 +26,7 @@ const (
 	ConfigFile = "config.yaml"
 )
 
-func (t *ServiceSetup) Register(name, info, channelname string)(string, error){
+func (t *ServiceSetup) RegisterChain(name, info, channelname string)(string, error){
 	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "userRegister", Args: [][]byte{[]byte(name), []byte(info)}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
 	if err != nil{
@@ -36,6 +36,15 @@ func (t *ServiceSetup) Register(name, info, channelname string)(string, error){
 }
 func (t *ServiceSetup) Recharge(num, channelname string)(string, error){
 	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "recharge", Args: [][]byte{[]byte(num)}}
+	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
+	if err != nil{
+		return "", err
+	}
+	return string(response.TransactionID), nil
+}
+
+func (t *ServiceSetup) Addskills(skills, channelname string)(string, error){
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "userAddSkill", Args: [][]byte{[]byte(skills)}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
 	if err != nil{
 		return "", err
@@ -66,6 +75,28 @@ func(t * ServiceSetup) Getusers(channelname string)(string, error){
 func (t *ServiceSetup) Posttask(Name, idd, Type, detail, reward,  requirement, channelname  string, posttime, receivetime,  deadline time.Time)(string, error){
 
 	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskPost", Args: [][]byte{[]byte(Name), []byte(idd), []byte(Type), []byte(detail),[]byte(reward), []byte(posttime.Format("2006-01-02 15:04:05")), []byte(receivetime.Format("2006-01-02 15:04:05")), []byte(deadline.Format("2006-01-02 15:04:05")), []byte(requirement)}}
+	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
+
+	if err != nil{
+		return "", err
+	}
+
+	return string(response.TransactionID), nil
+}
+
+func (t *ServiceSetup) Recievetask(taskid, channelname string, recievetime time.Time)(string, error){
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskReceive", Args: [][]byte{[]byte(taskid), []byte(recievetime.Format("2006-01-02 15:04:05"))}}
+	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
+
+	if err != nil{
+		return "", err
+	}
+
+	return string(response.TransactionID), nil
+}
+
+func (t *ServiceSetup) Committask(taskid, solution, channelname string, submittime time.Time)(string, error){
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskCommit", Args: [][]byte{[]byte(taskid), []byte(solution),  []byte(submittime.Format("2006-01-02 15:04:05"))}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
 
 	if err != nil{

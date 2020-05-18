@@ -15,7 +15,9 @@ import (
 )
 
 const (
+	// configFile  = "config.yaml"
 	configFile  = "Demo/config.yaml"
+
 	initialized = false
 	SimpleCC    = "crowdchain1"
 )
@@ -66,7 +68,7 @@ func Start(){
 
 	err = sdkInit.JoinChannel(environment[initInfo.ChannelID], initInfo)
 
-	environment[initInfo.ChannelID].ChannelClient, err = sdkInit.InstallAndInstantiateCC(environment[initInfo.ChannelID], initInfo)
+	err = sdkInit.InstallAndInstantiateCC(environment[initInfo.ChannelID], initInfo)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -78,6 +80,13 @@ func Start(){
 		ChaincodeID: SimpleCC,
 		Info:        initInfo,
 	}
+	sdkInit.Enroll(environment[initInfo.ChannelID], "admin", "adminpw")
+
+
+	// Enroll(C.CString("admin"), C.CString("adminpw"))
+	// Register(C.CString("userwang"), C.CString("yyt"))
+    // Enroll(C.CString("userwang"), C.CString("yyt"))
+
 }
 
 //export Set
@@ -94,7 +103,7 @@ func Set(){
 
     // Name id type detail reward posttime receivetime deadline requirement[]
 
-    msg, err := serviceSetup.Register("testuser1", "aaaaa", initInfo.ChannelID)
+    msg, err := serviceSetup.RegisterChain("testuser1", "aaaaa", initInfo.ChannelID)
 	if err != nil {
 		fmt.Println(err)
 	} else {
@@ -125,8 +134,6 @@ func Set(){
 		fmt.Println(msg)
 	}
 
-
-
 	// app := controller.Application{
 	// 	Fabric: &serviceSetup,
 	// }
@@ -148,6 +155,29 @@ func PostTask(name, taskid, tasktype, detail, reward, requirement *C.char) *C.ch
 		return C.CString("1"+msg)
 	}
 }
+
+//export RecieveTask
+func RecieveTask(taskid *C.char) *C.char{
+	now := time.Now()
+	msg, err := serviceSetup.Recievetask(C.GoString(taskid), initInfo.ChannelID, now)
+	if err != nil {
+        return C.CString("0" + err.Error())
+	} else {
+		return C.CString("1"+msg)
+	}
+}
+
+//export CommitTask
+func CommitTask(taskid, solution *C.char) *C.char{
+	now := time.Now()
+	msg, err := serviceSetup.Committask(C.GoString(taskid), C.GoString(solution), initInfo.ChannelID, now)
+	if err != nil {
+        return C.CString("0" + err.Error())
+	} else {
+		return C.CString("1"+msg)
+	}
+}
+
 
 //export GetTask
 func GetTask(taskid *C.char) *C.char{
@@ -177,23 +207,60 @@ func GetAllTasks() *C.char{
 } 
 
 //export Register
-func Register(name, info *C.char) *C.char{
-	msg, err := serviceSetup.Register(C.GoString(name), C.GoString(info), initInfo.ChannelID)
+func Register(name, password *C.char) *C.char{
+
+	err:=sdkInit.Register(environment[initInfo.ChannelID], C.GoString(name), C.GoString(password))
 
 	if err != nil {
 		return C.CString("0" + err.Error())
 
 	} else {
-				//recharge
-		msg, err = serviceSetup.Recharge("2000", initInfo.ChannelID)
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Println(msg)
-		}
-		return C.CString("1"+msg)
+		return C.CString("1")
 	}
+}
 
+//export Enroll
+func Enroll(name, password, info *C.char) *C.char{
+
+	err:=sdkInit.Enroll(environment[initInfo.ChannelID], C.GoString(name), C.GoString(password))
+
+	if err != nil {
+		return C.CString("0" + err.Error())
+
+	} 
+	err = sdkInit.CreateChannelClient(environment[initInfo.ChannelID],initInfo, C.GoString(name))
+
+	if err != nil {
+		return C.CString("0" + err.Error())
+
+	} 
+
+	msg, err := serviceSetup.RegisterChain(C.GoString(name), C.GoString(info), initInfo.ChannelID)
+	if err!= nil{
+		return C.CString("0" + err.Error())
+	}	
+	return C.CString("1"+"success"+msg)
+
+}
+
+//export Recharge
+func Recharge(number *C.char) *C.char{
+	msg, err := serviceSetup.Recharge(C.GoString(number), initInfo.ChannelID)
+	if err != nil {
+		return C.CString("0" + err.Error())
+	} else {
+		return C.CString("1" + msg)
+	}
+}
+
+//export AddSkills
+func AddSkills(skills *C.char) *C.char{
+	msg, err := serviceSetup.Addskills(C.GoString(skills), initInfo.ChannelID)
+	if err != nil {
+		return C.CString("0" + err.Error())
+	} else {
+		return C.CString("1" + msg)
+	}
 }
 
 //export GetUser
@@ -223,28 +290,14 @@ func GetAllUsers() *C.char{
 
 
 func main() {
+	// Start()
+
+    // Register(C.CString("userwang"), C.CString("yyt"))
+    // Enroll(C.CString("userwang"), C.CString("yyt"))
+    // sdkInit.Geidd(environment[initInfo.ChannelID])
 	for key := range environment {
 		defer environment[key].Sdk.Close()
 	}
-	
- //    ctx := mockClientProvider()
- //    c, err := New(ctx)
- //    if err != nil{
- //    	fmt.Println("failed to create msp client")
- //    }
- //    username := randomUsername()
 
-	// enrollmentSecret, err := c.Register(&RegistrationRequest{Name: username})
-	// if err != nil {
- //    	fmt.Printf("Register return error %s\n", err)
- //    	return
-	// }
-
-	// err = c.Enroll(username, WithSecret(enrollmentSecret))
-	// if err != nil {
-	//     fmt.Printf("failed to enroll user: %s\n", err)
-	//     return
-	// }
-	// fmt.Println("enroll user is completed")
 
 }

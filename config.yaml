@@ -5,16 +5,27 @@ certificateAuthorities:
       enrollId: admin
       enrollSecret: adminpw
     tlsCACerts:
-      path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgreq.crowd.com/ca/ca.orgreq.crowd.com-cert.pem
-    url: http://localhost:7054
-  ca.orgwork.crowd.com:
-    caName: ca.orgwork.crowd.com
-    registrar:
-      enrollId: admin
-      enrollSecret: adminpw
-    tlsCACerts:
-      path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgwork.crowd.com/ca/ca.orgwork.crowd.com-cert.pem
-    url: http://localhost:9054
+      path: ${GOPATH}/src/github.com/hyperledger/crowdsourcing/Demo/fixtures/crypto-config/peerOrganizations/orgreq.crowd.com/ca/ca.orgreq.crowd.com-cert.pem
+      # client:
+      #   key: 
+      #     path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgreq.crowd.com/users/Admin@orgreq.crowd.com/tls/client.key
+      #   cert:
+      #     path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgreq.crowd.com/users/Admin@orgreq.crowd.com/tls/client.crt
+    url: https://ca.orgreq.crowd.com:7054
+    # url: https://0.0.0.0:7054
+
+    httpOptions:
+      verify: false
+    # url: https://localhost:7054
+
+  # ca.orgwork.crowd.com:
+  #   caName: ca.orgwork.crowd.com
+  #   registrar:
+  #     enrollId: admin
+  #     enrollSecret: adminpw
+  #   tlsCACerts:
+  #     path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgwork.crowd.com/ca/ca.orgwork.crowd.com-cert.pem
+  #   url: http://localhost:9054
 channels:
   mychannel:
     orderers:
@@ -76,7 +87,7 @@ client:
       path: /tmp/Demo-msp
     path: /tmp/Demo-store
   cryptoconfig:
-    path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config
+    path: ${GOPATH}/src/github.com/hyperledger/crowdsourcing/Demo/fixtures/crypto-config
   eventService:
     type: deliver
   logging:
@@ -99,7 +110,7 @@ orderers:
       keep-alive-timeout: 20s
       ssl-target-name-override: orderer.crowd.com
     tlsCACerts:
-      path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/ordererOrganizations/crowd.com/tlsca/tlsca.crowd.com-cert.pem
+      path: ${GOPATH}/src/github.com/hyperledger/crowdsourcing/Demo/fixtures/crypto-config/ordererOrganizations/crowd.com/tlsca/tlsca.crowd.com-cert.pem
     url: localhost:7050
 organizations:
   OrdererOrg:
@@ -130,7 +141,7 @@ peers:
       keep-alive-timeout: 20s
       ssl-target-name-override: peer0.orgreq.crowd.com
     tlsCACerts:
-      path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgreq.crowd.com/tlsca/tlsca.orgreq.crowd.com-cert.pem
+      path: ${GOPATH}/src/github.com/hyperledger/crowdsourcing/Demo/fixtures/crypto-config/peerOrganizations/orgreq.crowd.com/tlsca/tlsca.orgreq.crowd.com-cert.pem
     url: localhost:7051
   peer0.orgwork.crowd.com:
     eventUrl: localhost:9053
@@ -142,7 +153,7 @@ peers:
       keep-alive-timeout: 20s
       ssl-target-name-override: peer0.orgwork.crowd.com
     tlsCACerts:
-      path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgwork.crowd.com/tlsca/tlsca.orgwork.crowd.com-cert.pem
+      path: ${GOPATH}/src/github.com/hyperledger/crowdsourcing/Demo/fixtures/crypto-config/peerOrganizations/orgwork.crowd.com/tlsca/tlsca.orgwork.crowd.com-cert.pem
     url: localhost:9051
   peer1.orgreq.crowd.com:
     eventUrl: localhost:8053
@@ -154,7 +165,7 @@ peers:
       keep-alive-timeout: 20s
       ssl-target-name-override: peer1.orgreq.crowd.com
     tlsCACerts:
-      path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgreq.crowd.com/tlsca/tlsca.orgreq.crowd.com-cert.pem
+      path: ${GOPATH}/src/github.com/hyperledger/crowdsourcing/Demo/fixtures/crypto-config/peerOrganizations/orgreq.crowd.com/tlsca/tlsca.orgreq.crowd.com-cert.pem
     url: localhost:8051
   peer1.orgwork.crowd.com:
     eventUrl: localhost:10053
@@ -166,5 +177,30 @@ peers:
       keep-alive-timeout: 20s
       ssl-target-name-override: peer1.orgwork.crowd.com
     tlsCACerts:
-      path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgwork.crowd.com/tlsca/tlsca.orgwork.crowd.com-cert.pem
+      path: ${GOPATH}/src/github.com/hyperledger/crowdsourcing/Demo/fixtures/crypto-config/peerOrganizations/orgwork.crowd.com/tlsca/tlsca.orgwork.crowd.com-cert.pem
     url: localhost:10051
+
+# entityMatchers:
+#   peer:
+#     - pattern: (\w*)peer0.orgreq.crowd.com(\w*)
+#       urlSubstitutionExp: localhost:7051
+#       eventUrlSubstitutionExp: localhost:7053
+#       sslTargetOverrideUrlSubstitutionExp: peer0.orgreq.crowd.com
+#       mappedHost: peer0.orgreq.crowd.com
+
+#     - pattern: (\w*)peer1.orgreq.crowd.com(\w*)
+#       urlSubstitutionExp: localhost:8051
+#       eventUrlSubstitutionExp: localhost:8053
+#       sslTargetOverrideUrlSubstitutionExp: peer1.orgreq.crowd.com
+#       mappedHost: peer1.orgreq.crowd.com
+
+#   orderer:
+#     - pattern: (\w*)orderer.crowd.com(\w*)
+#       urlSubstitutionExp: localhost:7050
+#       sslTargetOverrideUrlSubstitutionExp: orderer.crowd.com
+#       mappedHost: orderer.crowd.com
+
+#   # certificateAuthorities:
+  #   - pattern: (\w*)ca.orgreq.crowd.com(\w*)
+  #     urlSubstitutionExp: https://localhost:7054
+  #     mappedHost: ca.orgreq.crowd.com
