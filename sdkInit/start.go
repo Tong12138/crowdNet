@@ -118,23 +118,23 @@ func Enroll(envir *Environ, username, password string) error{
 
 }
 
-func Geidd(envir *Environ){
+func Getidentity(envir *Environ, name string) error{
 
  	ctx := envir.Sdk.Context()
     c, err := mspclient.New(ctx)
     if err != nil{
     	fmt.Println("failed to create msp client")
-    	// return err
+    	return err
     }
 
-	identity, err := c.GetSigningIdentity("userwang")
+	identity, err := c.GetSigningIdentity(name)
 	if err != nil {
-	    fmt.Printf("Get identities return error %s\n", err)
-	    // return
+	    fmt.Printf("Get identitie return error %s\n", err)
+	    return err
 	}
-	// fmt.Printf("identity '%s' retrieved\n", identity.ID)
-	fmt.Println(identity.PublicVersion())
-	
+    fmt.Println("get identity successfully !")
+    fmt.Println(identity)	
+    return nil
 }
 
 func CreateChannel(envir *Environ, info *InitInfo) error{

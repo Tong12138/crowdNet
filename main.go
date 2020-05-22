@@ -19,7 +19,7 @@ const (
 	configFile  = "Demo/config.yaml"
 
 	initialized = false
-	SimpleCC    = "crowdchain1"
+	SimpleCC    = "crowdchain2"
 )
 
 var environment map[string]*sdkInit.Environ
@@ -179,9 +179,33 @@ func CommitTask(taskid, solution *C.char) *C.char{
 }
 
 
+//export AlloReward
+func AlloReward(taskid, workerid, rate *C.char) *C.char{
+	now := time.Now()
+	msg, err := serviceSetup.Alloreward(C.GoString(taskid), C.GoString(workerid), C.GoString(rate), initInfo.ChannelID, now)
+	if err != nil {
+        return C.CString("0" + err.Error())
+	} else {
+		return C.CString("1"+msg)
+	}
+}
+
 //export GetTask
 func GetTask(taskid *C.char) *C.char{
 	msg, err := serviceSetup.Gettask(C.GoString(taskid),initInfo.ChannelID)
+	if err != nil {
+		// fmt.Println(err)
+		return C.CString(err.Error())
+	} else {
+		// fmt.Println(msg)
+		return C.CString(msg)
+	}
+
+}
+
+//export GetRecord
+func GetRecord(taskid *C.char) *C.char{
+	msg, err := serviceSetup.Getrecord(C.GoString(taskid),initInfo.ChannelID)
 	if err != nil {
 		// fmt.Println(err)
 		return C.CString(err.Error())
@@ -240,7 +264,29 @@ func Enroll(name, password, info *C.char) *C.char{
 		return C.CString("0" + err.Error())
 	}	
 	return C.CString("1"+"success"+msg)
+	// return C.CString("1")
 
+}
+//export Login
+func Login(name *C.char) *C.char{
+	err := sdkInit.Getidentity(environment[initInfo.ChannelID], C.GoString(name))
+	if err != nil {
+		return C.CString("0" + err.Error())
+
+	} 
+	err = sdkInit.CreateChannelClient(environment[initInfo.ChannelID],initInfo, C.GoString(name))
+
+	if err != nil {
+		return C.CString("0" + err.Error())
+
+	} 
+
+	// msg, err := serviceSetup.RegisterChain(C.GoString(name), C.GoString(info), initInfo.ChannelID)
+	// if err!= nil{
+	// 	return C.CString("0" + err.Error())
+	// }	
+	// return C.CString("1"+"success"+msg)
+	return C.CString("1"+"success")
 }
 
 //export Recharge

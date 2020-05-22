@@ -95,6 +95,17 @@ func (t *ServiceSetup) Recievetask(taskid, channelname string, recievetime time.
 	return string(response.TransactionID), nil
 }
 
+func (t *ServiceSetup) Alloreward(taskid, workerid, rate, channelname string, allotime time.Time)(string, error){
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "rewardAllocate", Args: [][]byte{[]byte(taskid), []byte(workerid), []byte(rate), []byte(allotime.Format("2006-01-02 15:04:05"))}}
+	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
+
+	if err != nil{
+		return "", err
+	}
+
+	return string(response.TransactionID), nil
+}
+
 func (t *ServiceSetup) Committask(taskid, solution, channelname string, submittime time.Time)(string, error){
 	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskCommit", Args: [][]byte{[]byte(taskid), []byte(solution),  []byte(submittime.Format("2006-01-02 15:04:05"))}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
@@ -115,6 +126,14 @@ func(t *ServiceSetup) Gettask(taskid, channelname string)(string, error){
 	return string(response.Payload), nil
 }
 
+func(t *ServiceSetup) Getrecord(taskid, channelname string)(string, error){
+	req := channel.Request{ChaincodeID:t.ChaincodeID, Fcn:"recordQuery", Args:[][]byte{[]byte(taskid)}}
+	response,err := (*(t.Environment))[channelname].ChannelClient.Query(req)
+	if err != nil{
+		return "", err
+	}
+	return string(response.Payload), nil
+}
 
 func(t * ServiceSetup) Gettasks(channelname string)(string, error){
 

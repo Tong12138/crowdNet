@@ -684,7 +684,9 @@ func rewardAllocate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	})
 	requesterCheck, err := stub.GetState(requesterKey)
 	if err != nil || len(requesterCheck) == 0 {
-		return shim.Error("User not found!")
+		// return shim.Error("request User not found!")
+		return shim.Error(fmt.Sprintf("request User not found! %s", requesterid))
+
 	}
 	workerKey, err := stub.CreateCompositeKey("User", []string{
 		"user",
@@ -692,7 +694,8 @@ func rewardAllocate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	})
 	workerCheck, err := stub.GetState(workerKey)
 	if err != nil || len(workerCheck) == 0 {
-		return shim.Error("User not found!")
+		// return shim.Error("worker User not found!")
+		return shim.Error(fmt.Sprintf("worker User not found! %s", workerid))
 	}
 	taskKey, err := stub.CreateCompositeKey("Task", []string{
 		"task",
