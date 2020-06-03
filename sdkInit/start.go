@@ -13,9 +13,46 @@ import(
 	"github.com/hyperledger/fabric-sdk-go/pkg/fab/ccpackager/gopackager"
 	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/common/cauthdsl"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
+
+	"crypto/rsa"
+	"crypto/rand"
+	"crypto/x509"
+	"encoding/pem"
+	"os"
 )
 
 const ChaincodeVersion = "1.0"
+
+func Getkeys(username string){
+	//得到私钥
+	privateKey,_:=rsa.GenerateKey(rand.Reader,2048)
+	//通过x509标准将得到的ras私钥序列化为ASN.1 的 DER编码字符串
+	x509_Privatekey:=x509.MarshalPKCS1PrivateKey(privateKey)
+	//创建一个用来保存私钥的以.pem结尾的文件
+	fp,_:=os.Create("local_private.pem")
+	defer fp.Close()
+	//将私钥字符串设置到pem格式块中
+	pem_block:=pem.Block{
+		Type:"csdn_privateKey",
+		Bytes:x509_Privatekey,
+	}
+	//转码为pem并输出到文件中
+	pem.Encode(fp,&pem_block)
+
+	//处理公钥,公钥包含在私钥中
+	publickKey:=privateKey.PublicKey
+	//接下来的处理方法同私钥
+	//通过x509标准将得到的ras私钥序列化为ASN.1 的 DER编码字符串
+	x509_PublicKey,_:=x509.MarshalPKIXPublicKey(&publickKey)
+	pem_PublickKey:=pem.Block{
+		Type:"csdn_PublicKey",
+		Bytes:x509_PublicKey,
+	}
+	file,_:=os.Create(username + "_PublicKey.pem")
+	defer file.Close()
+	//转码为pem并输出到文件中
+	pem.Encode(file,&pem_PublickKey)
+}
 
 func SetupSDK(ConfigFile string, initialized bool) (*fabsdk.FabricSDK, error){
 
@@ -71,6 +108,7 @@ func Register(envir *Environ, username, password string) error{
 		fmt.Printf("register %s [%s]\n", username, err)
 		return err
 	}
+	Getkeys(username)
 	fmt.Printf("register %s successfully,with password %s\n", username, secret)
 	return nil
 }
