@@ -183,6 +183,8 @@ func CreateChannel(envir *Environ, info *InitInfo) error{
 	}
 
 	adminIdentity, err:= mspClient.GetSigningIdentity(info.OrgAdmin)
+	info.AdminIdentity = adminIdentity
+	fmt.Println(adminIdentity)
 	if err!=nil{
 		return fmt.Errorf("获取指定id的签名标识失败%v", err)
 	}

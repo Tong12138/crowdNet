@@ -1,31 +1,14 @@
 certificateAuthorities:
   ca.orgreq.crowd.com:
     caName: ca.orgreq.crowd.com
+    httpOptions:
+      verify: false
     registrar:
-      enrollId: admin
+      enrollId: registrar
       enrollSecret: adminpw
     tlsCACerts:
       path: ${GOPATH}/src/github.com/hyperledger/crowdsourcing/Demo/fixtures/crypto-config/peerOrganizations/orgreq.crowd.com/ca/ca.orgreq.crowd.com-cert.pem
-      # client:
-      #   key: 
-      #     path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgreq.crowd.com/users/Admin@orgreq.crowd.com/tls/client.key
-      #   cert:
-      #     path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgreq.crowd.com/users/Admin@orgreq.crowd.com/tls/client.crt
     url: https://ca.orgreq.crowd.com:7054
-    # url: https://0.0.0.0:7054
-
-    httpOptions:
-      verify: false
-    # url: https://localhost:7054
-
-  # ca.orgwork.crowd.com:
-  #   caName: ca.orgwork.crowd.com
-  #   registrar:
-  #     enrollId: admin
-  #     enrollSecret: adminpw
-  #   tlsCACerts:
-  #     path: ${GOPATH}/src/github.com/hyperledger/Demo/fixtures/crypto-config/peerOrganizations/orgwork.crowd.com/ca/ca.orgwork.crowd.com-cert.pem
-  #   url: http://localhost:9054
 channels:
   mychannel:
     orderers:
@@ -50,7 +33,76 @@ channels:
           backoffFactor: 2
           initialBackoff: 500ms
           maxBackoff: 5s
-  second:
+  yyadmin:
+    orderers:
+    - orderer.crowd.com
+    peers:
+      peer0.orgreq.crowd.com:
+        chaincodeQuery: true
+        endorsingPeer: true
+        eventSource: true
+        ledgerQuery: true
+      peer1.orgreq.crowd.com:
+        chaincodeQuery: true
+        endorsingPeer: true
+        eventSource: true
+        ledgerQuery: true
+    policies:
+      queryChannelConfig:
+        maxTargets: 1
+        minResponses: 1
+        retryOpts:
+          attempts: 5
+          backoffFactor: 2
+          initialBackoff: 500ms
+          maxBackoff: 5s
+  yytaaa:
+    orderers:
+    - orderer.crowd.com
+    peers:
+      peer0.orgreq.crowd.com:
+        chaincodeQuery: true
+        endorsingPeer: true
+        eventSource: true
+        ledgerQuery: true
+      peer1.orgreq.crowd.com:
+        chaincodeQuery: true
+        endorsingPeer: true
+        eventSource: true
+        ledgerQuery: true
+    policies:
+      queryChannelConfig:
+        maxTargets: 1
+        minResponses: 1
+        retryOpts:
+          attempts: 5
+          backoffFactor: 2
+          initialBackoff: 500ms
+          maxBackoff: 5s
+  yyttask1:
+    orderers:
+    - orderer.crowd.com
+    peers:
+      peer0.orgreq.crowd.com:
+        chaincodeQuery: true
+        endorsingPeer: true
+        eventSource: true
+        ledgerQuery: true
+      peer1.orgreq.crowd.com:
+        chaincodeQuery: true
+        endorsingPeer: true
+        eventSource: true
+        ledgerQuery: true
+    policies:
+      queryChannelConfig:
+        maxTargets: 1
+        minResponses: 1
+        retryOpts:
+          attempts: 5
+          backoffFactor: 2
+          initialBackoff: 500ms
+          maxBackoff: 5s
+  yytts1:
     orderers:
     - orderer.crowd.com
     peers:
@@ -180,27 +232,27 @@ peers:
       path: ${GOPATH}/src/github.com/hyperledger/crowdsourcing/Demo/fixtures/crypto-config/peerOrganizations/orgwork.crowd.com/tlsca/tlsca.orgwork.crowd.com-cert.pem
     url: localhost:10051
 
-# entityMatchers:
-#   peer:
-#     - pattern: (\w*)peer0.orgreq.crowd.com(\w*)
-#       urlSubstitutionExp: localhost:7051
-#       eventUrlSubstitutionExp: localhost:7053
-#       sslTargetOverrideUrlSubstitutionExp: peer0.orgreq.crowd.com
-#       mappedHost: peer0.orgreq.crowd.com
+entityMatchers:
+  peer:
+    - pattern: (\w*)peer0.orgreq.crowd.com(\w*)
+      urlSubstitutionExp: localhost:7051
+      eventUrlSubstitutionExp: localhost:7053
+      sslTargetOverrideUrlSubstitutionExp: peer0.orgreq.crowd.com
+      mappedHost: peer0.orgreq.crowd.com
 
-#     - pattern: (\w*)peer1.orgreq.crowd.com(\w*)
-#       urlSubstitutionExp: localhost:8051
-#       eventUrlSubstitutionExp: localhost:8053
-#       sslTargetOverrideUrlSubstitutionExp: peer1.orgreq.crowd.com
-#       mappedHost: peer1.orgreq.crowd.com
+    - pattern: (\w*)peer1.orgreq.crowd.com(\w*)
+      urlSubstitutionExp: localhost:8051
+      eventUrlSubstitutionExp: localhost:8053
+      sslTargetOverrideUrlSubstitutionExp: peer1.orgreq.crowd.com
+      mappedHost: peer1.orgreq.crowd.com
 
-#   orderer:
-#     - pattern: (\w*)orderer.crowd.com(\w*)
-#       urlSubstitutionExp: localhost:7050
-#       sslTargetOverrideUrlSubstitutionExp: orderer.crowd.com
-#       mappedHost: orderer.crowd.com
+  orderer:
+    - pattern: (\w*)orderer.crowd.com(\w*)
+      urlSubstitutionExp: localhost:7050
+      sslTargetOverrideUrlSubstitutionExp: orderer.crowd.com
+      mappedHost: orderer.crowd.com
 
-#   # certificateAuthorities:
-  #   - pattern: (\w*)ca.orgreq.crowd.com(\w*)
-  #     urlSubstitutionExp: https://localhost:7054
-  #     mappedHost: ca.orgreq.crowd.com
+  certificateAuthorities:
+    - pattern: (\w*)ca.orgreq.crowd.com(\w*)
+      urlSubstitutionExp: https://ca.orgreq.crowd.com:7054
+      mappedHost: ca.orgreq.crowd.com

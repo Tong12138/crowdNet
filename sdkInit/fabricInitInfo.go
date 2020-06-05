@@ -6,6 +6,8 @@ import(
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
+	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/msp"
+
 )
 
 type InitInfo struct{
@@ -14,11 +16,14 @@ type InitInfo struct{
 	OrgAdmin string
 	OrgName string
 	OrdererOrgName string
+    AdminIdentity msp.SigningIdentity
+
 
 	ChaincodeID string
 	ChaincodeGoPath string
 	ChaincodePath string
 	UserName string
+
 }
 
 type Environ struct{

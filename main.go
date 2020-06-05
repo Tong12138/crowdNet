@@ -80,7 +80,7 @@ func Start(){
 		ChaincodeID: SimpleCC,
 		Info:        initInfo,
 	}
-	sdkInit.Enroll(environment[initInfo.ChannelID], "admin", "adminpw")
+	sdkInit.Enroll(environment[initInfo.ChannelID], "registrar", "adminpw")
 
 
 	// Enroll(C.CString("admin"), C.CString("adminpw"))
@@ -149,6 +149,41 @@ func PostTask(name, taskid, tasktype, detail, reward, requirement *C.char) *C.ch
 	dd2 := dd1.Add(dd)
 
 	msg, err := serviceSetup.Posttask(C.GoString(name), C.GoString(taskid), C.GoString(tasktype), C.GoString(detail), C.GoString(reward), C.GoString(requirement), initInfo.ChannelID, now, dd1, dd2)
+	if err != nil {
+        return C.CString("0" + err.Error())
+	} else {
+		return C.CString("1"+msg)
+	}
+}
+
+//export PostPriTask
+func PostPriTask(name, taskid, tasktype, detail, reward, requirement, userid *C.char) *C.char{
+	err := serviceSetup.CreateNewChannel(C.GoString(taskid))
+	if err!=nil{
+		return C.CString("0"+ err.Error())
+	}
+
+	// initInfo.ChannelID = C.GoString(taskid)
+	err = sdkInit.CreateChannelClient(environment[C.GoString(taskid)],initInfo, C.GoString(userid))
+
+	if err != nil {
+		return C.CString("0" + err.Error())
+
+	} 
+
+	// msg, err := serviceSetup.RegisterChain(C.GoString(userid), C.GoString(info), initInfo.ChannelID)
+	// if err!= nil{
+	// 	return C.CString("0" + err.Error())
+	// }	
+	// return C.CString("1"+"success"+msg)
+
+
+    now := time.Now()
+	dd, _ := time.ParseDuration("24h")
+	dd1 := now.Add(dd)
+	dd2 := dd1.Add(dd)
+
+	msg, err := serviceSetup.Posttask(C.GoString(name), C.GoString(taskid), C.GoString(tasktype), C.GoString(detail), C.GoString(reward), C.GoString(requirement), C.GoString(taskid), now, dd1, dd2)
 	if err != nil {
         return C.CString("0" + err.Error())
 	} else {

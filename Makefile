@@ -50,7 +50,7 @@ destroy:
 updatechannel:
 	@echo "update the channel"
 	@cd fixtures && rm -fr channel-artifacts/*
-	@cd fixtures && configtxgen -profile crowdOrdererGenesis -outputBlock ./channel-artifacts/genesis.block
+	@cd fixtures && configtxgen -profile -outputBlock ./channel-artifacts/genesis.block
 	@cd fixtures && configtxgen -profile ThreeOrgsChannel -outputCreateChannelTx ./channel-artifacts/channel.tx -channelID mychannel
 	@cd fixtures && configtxgen -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/OrgReqMSPanchors.tx -channelID mychannel -asOrg OrgReq
 # 	@cd fixtures && configtxgen -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/OrgWorkMSPanchors.tx -channelID mychannel -asOrg OrgWork
@@ -59,6 +59,6 @@ newchannel:
 # 	ifdef channelname
 	@echo "create a new channel ..."
 	@cd fixtures && configtxgen -profile ThreeOrgsChannel -outputCreateChannelTx ./channel-artifacts/${channelname}.tx -channelID ${channelname}
-# 	@cd fixtures && configtxgen -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/testOrgReqMSPanchors.tx -channelID testchannel -asOrg OrgReq
+# 	@cd fixtures && configtxgen -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/${channelname}OrgReqMSPanchors.tx -channelID ${channelname} -asOrg OrgReq
 # 	@cd fixtures && configtxgen -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/testOrgWorkMSPanchors.tx -channelID testchannel -asOrg OrgWork
 #     endif 

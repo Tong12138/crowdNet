@@ -46,7 +46,7 @@ services:
       - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/bd52570fe3170f5fe2310e739d5395630da560c49800636b0004d8a57dfa43e4_sk
     ports:
       - 7054:7054
-    command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
+    command: sh -c 'fabric-ca-server start -b registrar:adminpw -d'
     # command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.orgreq.crowd.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/bd52570fe3170f5fe2310e739d5395630da560c49800636b0004d8a57dfa43e4_sk -b admin:adminpw -d'
     volumes:
       - ../crypto-config/peerOrganizations/orgreq.crowd.com/ca/:/etc/hyperledger/fabric-ca-server-config

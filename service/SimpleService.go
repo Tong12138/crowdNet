@@ -23,7 +23,7 @@ import(
 
 const (
 	ChaincodeVersion = "1.0"
-	ConfigFile = "config.yaml"
+	ConfigFile = "Demo/config.yaml"
 )
 
 func (t *ServiceSetup) RegisterChain(name, info, channelname string)(string, error){
@@ -182,6 +182,8 @@ func(t * ServiceSetup) CreateNewChannel(newchannel string)(error){
     //create channel.tx
     fmt.Println("newchannel is %v", newchannel)
     command := exec.Command("make","newchannel", "channelname="+newchannel)
+    command.Dir = "./Demo/"
+
     err:= command.Run()
 	if err!= nil{
 		return fmt.Errorf("创建tx文件失败%v", err)
@@ -229,7 +231,7 @@ func(t * ServiceSetup) CreateNewChannel(newchannel string)(error){
 
     
     //创建通道
-	ChannelConfig := os.Getenv("GOPATH") + "/src/github.com/hyperledger/Demo/fixtures/channel-artifacts/" +newchannel+".tx"
+	ChannelConfig := os.Getenv("GOPATH") + "/src/github.com/hyperledger/crowdsourcing/Demo/fixtures/channel-artifacts/" +newchannel+".tx"
 	fmt.Println("SimpleService createchannel")
 	mspClient, err := mspclient.New((*(t.Environment))[newchannel].Sdk.Context(), mspclient.WithOrg(t.Info.OrgName))
 	if err!=nil{
@@ -237,6 +239,7 @@ func(t * ServiceSetup) CreateNewChannel(newchannel string)(error){
 	}
 
 	adminIdentity, err:= mspClient.GetSigningIdentity(t.Info.OrgAdmin)
+	// fmt.Println(t.Info.AdminIdentity)
 	if err!=nil{
 		return fmt.Errorf("获取指定id的签名标识失败%v", err)
 	}
@@ -290,15 +293,15 @@ func(t * ServiceSetup) CreateNewChannel(newchannel string)(error){
 
     fmt.Println("实例化链码成功")
 
-    clientChannelContext := (*(t.Environment))[newchannel].Sdk.ChannelContext(newchannel, fabsdk.WithUser(t.Info.UserName), fabsdk.WithOrg(t.Info.OrgName))
+ //    clientChannelContext := (*(t.Environment))[newchannel].Sdk.ChannelContext(newchannel, fabsdk.WithUser(t.Info.UserName), fabsdk.WithOrg(t.Info.OrgName))
 
-    channelClient, err := channel.New(clientChannelContext)
-    if err!=nil{
-    	return fmt.Errorf("创建应用通道客户端失败: %v", err)
-    }
+ //    channelClient, err := channel.New(clientChannelContext)
+ //    if err!=nil{
+ //    	return fmt.Errorf("创建应用通道客户端失败: %v", err)
+ //    }
 
-    fmt.Println("通道客户端创建成功， 可用此客户端调用链码进行查询或执行事务 newchannel")
-    (*(t.Environment))[newchannel].ChannelClient = channelClient
+ //    fmt.Println("通道客户端创建成功， 可用此客户端调用链码进行查询或执行事务 newchannel")
+ //    (*(t.Environment))[newchannel].ChannelClient = channelClient
 
 	return nil
 }
