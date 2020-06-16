@@ -19,11 +19,17 @@ import (
 var sh *shell.Shell
 
 //export UploadIPFS
-func UploadIPFS(str *C.char, public_key *C.char) *C.char {
+func UploadIPFS(str *C.char, public_key *C.char, flag *C.char) *C.char {
 	sh = shell.NewShell("localhost:5001")
 	arg := C.GoString(str)
 	data, err := ioutil.ReadFile(arg)
-	data_en := RSA_encrypter(C.GoString(public_key), []byte(data))
+	var data_en []byte
+
+	if C.GoString(flag) == "yes" {
+		data_en = RSA_encrypter(C.GoString(public_key), []byte(data))
+	} else {
+		data_en = []byte(data)
+	}
 	//data_hex := hex.EncodeToString(data_en)
 	hash, err := sh.Add(bytes.NewBufferString(string(data_en)))
 	if err != nil {
@@ -33,7 +39,7 @@ func UploadIPFS(str *C.char, public_key *C.char) *C.char {
 }
 
 //export CatIPFS
-func CatIPFS(hash_c *C.char, filename_c *C.char) *C.char {
+func CatIPFS(hash_c *C.char, filename_c *C.char, flag *C.char) *C.char {
 	sh = shell.NewShell("localhost:5001")
 	hash := C.GoString(hash_c)
 	filename := C.GoString(filename_c)
@@ -42,7 +48,12 @@ func CatIPFS(hash_c *C.char, filename_c *C.char) *C.char {
 		fmt.Println(err)
 	}
 	body, err := ioutil.ReadAll(read)
-	data_de := RSA_decrypter("local_private.pem", body)
+	var data_de []byte
+	if C.GoString(flag) == "yes" {
+		data_de = RSA_decrypter("yyt_PrivateKey.pem", body)
+	} else {
+		data_de = body
+	}
 	err = ioutil.WriteFile(filename, data_de, 0666)
 	if err != nil {
 		panic(err)
@@ -51,7 +62,7 @@ func CatIPFS(hash_c *C.char, filename_c *C.char) *C.char {
 	return C.CString(result)
 }
 
-//使用公钥进行加密
+//使用公钥进行加密 分段加密
 func RSA_encrypter(path string,msg []byte)[]byte  {
 	//首先从文件中提取公钥
 	fp,_:=os.Open(path)
@@ -62,12 +73,42 @@ func RSA_encrypter(path string,msg []byte)[]byte  {
 	fp.Read(buf)
 	//下面的操作是与创建秘钥保存时相反的
 	//pem解码
+	fmt.Println(buf[1:10])
 	block,_:=pem.Decode(buf)
 	//x509解码,得到一个interface类型的pub
-	pub,_:=x509.ParsePKIXPublicKey(block.Bytes)
-	//加密操作,需要将接口类型的pub进行类型断言得到公钥类型
-	cipherText,_:=rsa.EncryptPKCS1v15(rand.Reader,pub.(*rsa.PublicKey),msg)
-	return cipherText
+	pub, err:=x509.ParsePKIXPublicKey(block.Bytes)
+	// pub = pub.(*rsa.PublicKey)
+
+    if err!= nil{
+    	fmt.Println(err)
+    	return []byte("获得公钥失败")
+    }
+
+    keySize, srcSize := pub.(*rsa.PublicKey).Size(), len(msg)
+    offset, once := 0, keySize-11
+    buffer := bytes.Buffer{}
+    for offset<srcSize{
+    	endIndex := offset +once
+    	if endIndex> srcSize{
+    		endIndex = srcSize
+    	}
+    	//加密一部分
+    	bytesOnce, err:= rsa.EncryptPKCS1v15(rand.Reader, pub.(*rsa.PublicKey), msg[offset:endIndex])
+    	if err != nil{
+    		fmt.Println(err)
+    		return []byte("加密失败")
+    	}
+    	buffer.Write(bytesOnce)
+    	offset = endIndex
+    }
+    return buffer.Bytes()
+
+	// //加密操作,需要将接口类型的pub进行类型断言得到公钥类型
+	// cipherText, err:=rsa.EncryptPKCS1v15(rand.Reader,pub.(*rsa.PublicKey),msg)
+	// fmt.Println(msg[1:10])
+	// fmt.Println(err)
+	// fmt.Println(cipherText)
+	// return cipherText
 }
 
 //使用私钥进行解密
@@ -79,10 +120,30 @@ func RSA_decrypter(path string,cipherText []byte)[]byte  {
 	buf:=make([]byte,fileinfo.Size())
 	fp.Read(buf)
 	block,_:=pem.Decode(buf)
-	PrivateKey,_:=x509.ParsePKCS1PrivateKey(block.Bytes)
+	PrivateKey, err:=x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err!= nil{
+		return []byte("获取私钥失败")
+	}
+
+	keySize := PrivateKey.Size()
+	srcSize := len(cipherText)
+	var offset = 0
+	var buffer = bytes.Buffer{}
+	for offset <srcSize{
+		endIndex := offset + keySize
+		if endIndex > srcSize{
+			endIndex = srcSize
+		}
+		bytesOnce, err := rsa.DecryptPKCS1v15(rand.Reader, PrivateKey, cipherText[offset:endIndex])
+		if err != nil{
+			return []byte("解密失败")
+		}
+		buffer.Write(bytesOnce)
+		offset = endIndex
+	}
 	//二次解码完毕，调用解密函数
-	afterDecrypter,_:=rsa.DecryptPKCS1v15(rand.Reader,PrivateKey,cipherText)
-	return afterDecrypter
+	// afterDecrypter,_:=rsa.DecryptPKCS1v15(rand.Reader,PrivateKey,cipherText)
+	return buffer.Bytes()
 }
 
 func main() {

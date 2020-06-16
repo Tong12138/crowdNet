@@ -26,6 +26,17 @@ const (
 	ConfigFile = "Demo/config.yaml"
 )
 
+func (t *ServiceSetup) Updatetask(taskid, hash, channelname string)(string, error){
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskUpdate", Args: [][]byte{[]byte(taskid), []byte(hash)}}
+	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
+
+	if err != nil{
+		return "", err
+	}
+
+	return string(response.TransactionID), nil
+}
+
 func (t *ServiceSetup) RegisterChain(name, info, channelname string)(string, error){
 	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "userRegister", Args: [][]byte{[]byte(name), []byte(info)}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
@@ -74,17 +85,20 @@ func(t * ServiceSetup) Getusers(channelname string)(string, error){
 
 func (t *ServiceSetup) Posttask(Name, idd, Type, detail, reward,  requirement, channelname  string, posttime, receivetime,  deadline time.Time)(string, error){
 
+    // start := time.Now()
 	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskPost", Args: [][]byte{[]byte(Name), []byte(idd), []byte(Type), []byte(detail),[]byte(reward), []byte(posttime.Format("2006-01-02 15:04:05")), []byte(receivetime.Format("2006-01-02 15:04:05")), []byte(deadline.Format("2006-01-02 15:04:05")), []byte(requirement)}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
 
 	if err != nil{
 		return "", err
 	}
-
+    // end := time.Now()
+    // fmt.Println(end.Sub(start))
 	return string(response.TransactionID), nil
 }
 
 func (t *ServiceSetup) Recievetask(taskid, channelname string, recievetime time.Time)(string, error){
+	start := time.Now()
 	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskReceive", Args: [][]byte{[]byte(taskid), []byte(recievetime.Format("2006-01-02 15:04:05"))}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
 
@@ -92,10 +106,13 @@ func (t *ServiceSetup) Recievetask(taskid, channelname string, recievetime time.
 		return "", err
 	}
 
+    end := time.Now()
+    fmt.Println(end.Sub(start))
 	return string(response.TransactionID), nil
 }
 
 func (t *ServiceSetup) Alloreward(taskid, workerid, rate, channelname string, allotime time.Time)(string, error){
+	start := time.Now()
 	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "rewardAllocate", Args: [][]byte{[]byte(taskid), []byte(workerid), []byte(rate), []byte(allotime.Format("2006-01-02 15:04:05"))}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
 
@@ -103,10 +120,13 @@ func (t *ServiceSetup) Alloreward(taskid, workerid, rate, channelname string, al
 		return "", err
 	}
 
+    end := time.Now()
+    fmt.Println(end.Sub(start))
 	return string(response.TransactionID), nil
 }
 
 func (t *ServiceSetup) Committask(taskid, solution, channelname string, submittime time.Time)(string, error){
+	start := time.Now()
 	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskCommit", Args: [][]byte{[]byte(taskid), []byte(solution),  []byte(submittime.Format("2006-01-02 15:04:05"))}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
 
@@ -114,6 +134,8 @@ func (t *ServiceSetup) Committask(taskid, solution, channelname string, submitti
 		return "", err
 	}
 
+    end := time.Now()
+    fmt.Println(end.Sub(start))
 	return string(response.TransactionID), nil
 }
 

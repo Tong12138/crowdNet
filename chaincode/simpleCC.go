@@ -6,6 +6,11 @@ import (
 	"strconv"
 	"time"
 
+	// "github.com/hyperledger/fabric-chaincode-go/shim"
+	// pb "github.com/hyperledger/fabric-protos-go/peer"
+	// "github.com/golang/protobuf/proto"
+	// "github.com/hyperledger/fabric-protos-go/msp"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/msp"
@@ -91,6 +96,8 @@ func (t *Simple) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 		return alluserQuery(stub, args)
 	case "alltaskQuery":
 		return alltaskQuery(stub, args)
+	case "taskUpdate":
+		return taskUpdate(stub, args)
 	default:
 		return shim.Error("Invalid invoke function name.")
 	}
@@ -402,6 +409,57 @@ func taskPost(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	err = stub.PutState(recordKey, recordBytes)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("put record error %s", err))
+	}
+	return shim.Success(nil)
+}
+
+//更新任务的数据
+func taskUpdate(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	if len(args) != 2 {
+		return shim.Error("Incorrect number of arguments. Expecting 2")
+	}
+	taskid := args[0]
+	hash := args[1]
+	creatorByte, err := stub.GetCreator()
+	si := &msp.SerializedIdentity{}
+	err = proto.Unmarshal(creatorByte, si)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("get id error %s", err))
+	}
+	userid := string(si.GetIdBytes())
+	if userid == "" || taskid == "" || hash == "" {
+		return shim.Error("Invalid args")
+	}
+	userKey, err := stub.CreateCompositeKey("User", []string{
+		"user",
+		userid,
+	})
+	userCheck, err := stub.GetState(userKey)
+	if err != nil || len(userCheck) == 0 {
+		// return shim.Error("request User not found!")
+		return shim.Error(fmt.Sprintf("User not found! %s", userid))
+	}
+	taskKey, err := stub.CreateCompositeKey("Task", []string{
+		"task",
+		taskid,
+	})
+	taskCheck, err := stub.GetState(taskKey)
+	if err != nil || len(taskCheck) == 0 {
+		return shim.Error("Task not found!")
+	}
+	task := new(Task)
+	err = json.Unmarshal(taskCheck, task)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unmarshal task error %s", err))
+	}
+	task.Detail = task.Detail + "\n" + hash
+	taskBytes, err := json.Marshal(task)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("marshal task error %s", err))
+	}
+	err = stub.PutState(taskKey, taskBytes)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("update task error %s", err))
 	}
 	return shim.Success(nil)
 }

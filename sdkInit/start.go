@@ -25,11 +25,11 @@ const ChaincodeVersion = "1.0"
 
 func Getkeys(username string){
 	//得到私钥
-	privateKey,_:=rsa.GenerateKey(rand.Reader,2048)
+	privateKey,_:=rsa.GenerateKey(rand.Reader, 2048)
 	//通过x509标准将得到的ras私钥序列化为ASN.1 的 DER编码字符串
 	x509_Privatekey:=x509.MarshalPKCS1PrivateKey(privateKey)
 	//创建一个用来保存私钥的以.pem结尾的文件
-	fp,_:=os.Create("local_private.pem")
+	fp,_:=os.Create(username + "_PrivateKey.pem")
 	defer fp.Close()
 	//将私钥字符串设置到pem格式块中
 	pem_block:=pem.Block{
@@ -165,13 +165,13 @@ func Getidentity(envir *Environ, name string) error{
     	return err
     }
 
-	identity, err := c.GetSigningIdentity(name)
+	_, err = c.GetSigningIdentity(name)
 	if err != nil {
 	    fmt.Printf("Get identitie return error %s\n", err)
 	    return err
 	}
-    fmt.Println("get identity successfully !")
-    fmt.Println(identity)	
+    // fmt.Println("get identity successfully !")
+    // fmt.Println(identity)	
     return nil
 }
 
@@ -184,7 +184,6 @@ func CreateChannel(envir *Environ, info *InitInfo) error{
 
 	adminIdentity, err:= mspClient.GetSigningIdentity(info.OrgAdmin)
 	info.AdminIdentity = adminIdentity
-	fmt.Println(adminIdentity)
 	if err!=nil{
 		return fmt.Errorf("获取指定id的签名标识失败%v", err)
 	}

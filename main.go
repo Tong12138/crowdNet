@@ -19,7 +19,7 @@ const (
 	configFile  = "Demo/config.yaml"
 
 	initialized = false
-	SimpleCC    = "crowdchain2"
+	SimpleCC    = "crowdchain3"
 )
 
 var environment map[string]*sdkInit.Environ
@@ -55,9 +55,7 @@ func Start(){
 		return
 	}
 
-
 	//资源客户管理端
-
 	err = sdkInit.CreateSourceClient(environment[initInfo.ChannelID], initInfo)
 
 	err = sdkInit.CreateChannel(environment[initInfo.ChannelID], initInfo)
@@ -80,8 +78,9 @@ func Start(){
 		ChaincodeID: SimpleCC,
 		Info:        initInfo,
 	}
-	sdkInit.Enroll(environment[initInfo.ChannelID], "registrar", "adminpw")
 
+	//enroll fabric CA
+	sdkInit.Enroll(environment[initInfo.ChannelID], "registrar", "adminpw")
 
 	// Enroll(C.CString("admin"), C.CString("adminpw"))
 	// Register(C.CString("userwang"), C.CString("yyt"))
@@ -140,18 +139,79 @@ func Set(){
 	// web.WebStart(&app)
 }
 
+//export Register
+func Register(name, password *C.char) *C.char{
+
+    // register a user with name and password
+	err:=sdkInit.Register(environment[initInfo.ChannelID], C.GoString(name), C.GoString(password))
+
+	if err != nil {
+		return C.CString("0" + err.Error())
+
+	} else {
+		return C.CString("1" + "success")
+	}
+}
+
+//export Enroll
+func Enroll(name, password, info *C.char) *C.char{
+
+    //enroll the user
+	err:=sdkInit.Enroll(environment[initInfo.ChannelID], C.GoString(name), C.GoString(password))
+
+	if err != nil {
+		return C.CString("0" + err.Error())
+
+	} 
+	err = sdkInit.CreateChannelClient(environment[initInfo.ChannelID],initInfo, C.GoString(name))
+
+	if err != nil {
+		return C.CString("0" + err.Error())
+
+	} 
+    //register on chaincode
+	msg, err := serviceSetup.RegisterChain(C.GoString(name), C.GoString(info), initInfo.ChannelID)
+	if err!= nil{
+		return C.CString("0" + err.Error())
+	}	
+	return C.CString("1"+"success "+msg)
+
+}
+//export Login
+func Login(name *C.char) *C.char{
+	//login the user
+	err := sdkInit.Getidentity(environment[initInfo.ChannelID], C.GoString(name))
+	if err != nil {
+		return C.CString("0" + err.Error())
+
+	} 
+	err = sdkInit.CreateChannelClient(environment[initInfo.ChannelID],initInfo, C.GoString(name))
+
+	if err != nil {
+		return C.CString("0" + err.Error())
+
+	} 
+	return C.CString("1"+"success")
+}
+
 //export PostTask
-func PostTask(name, taskid, tasktype, detail, reward, requirement *C.char) *C.char{
+func PostTask(name, taskid, tasktype, detail, reward, requirement, recievetime, deadline *C.char) *C.char{
+	//publish a task
 
     now := time.Now()
-	dd, _ := time.ParseDuration("24h")
-	dd1 := now.Add(dd)
-	dd2 := dd1.Add(dd)
+	// dd, _ := time.ParseDuration("24h")
+	// dd1 := now.Add(dd)
+	// dd2 := dd1.Add(dd)
+	local, _ := time.LoadLocation("Local")
+	dd1, _ := time.ParseInLocation("2006-01-02 15:04:05", C.GoString(recievetime), local)
+	dd2, _ := time.ParseInLocation("2006-01-02 15:04:05", C.GoString(deadline), local)
 
 	msg, err := serviceSetup.Posttask(C.GoString(name), C.GoString(taskid), C.GoString(tasktype), C.GoString(detail), C.GoString(reward), C.GoString(requirement), initInfo.ChannelID, now, dd1, dd2)
 	if err != nil {
         return C.CString("0" + err.Error())
 	} else {
+		// end := time.Now()
+		// fmt.Println(end.Sub(now))
 		return C.CString("1"+msg)
 	}
 }
@@ -198,6 +258,8 @@ func RecieveTask(taskid *C.char) *C.char{
 	if err != nil {
         return C.CString("0" + err.Error())
 	} else {
+		end := time.Now()
+		fmt.Println(end.Sub(now))
 		return C.CString("1"+msg)
 	}
 }
@@ -209,6 +271,9 @@ func CommitTask(taskid, solution *C.char) *C.char{
 	if err != nil {
         return C.CString("0" + err.Error())
 	} else {
+		end := time.Now()
+		fmt.Println(end.Sub(now))
+		
 		return C.CString("1"+msg)
 	}
 }
@@ -221,6 +286,8 @@ func AlloReward(taskid, workerid, rate *C.char) *C.char{
 	if err != nil {
         return C.CString("0" + err.Error())
 	} else {
+		end := time.Now()
+		fmt.Println(end.Sub(now))
 		return C.CString("1"+msg)
 	}
 }
@@ -265,64 +332,6 @@ func GetAllTasks() *C.char{
 
 } 
 
-//export Register
-func Register(name, password *C.char) *C.char{
-
-	err:=sdkInit.Register(environment[initInfo.ChannelID], C.GoString(name), C.GoString(password))
-
-	if err != nil {
-		return C.CString("0" + err.Error())
-
-	} else {
-		return C.CString("1")
-	}
-}
-
-//export Enroll
-func Enroll(name, password, info *C.char) *C.char{
-
-	err:=sdkInit.Enroll(environment[initInfo.ChannelID], C.GoString(name), C.GoString(password))
-
-	if err != nil {
-		return C.CString("0" + err.Error())
-
-	} 
-	err = sdkInit.CreateChannelClient(environment[initInfo.ChannelID],initInfo, C.GoString(name))
-
-	if err != nil {
-		return C.CString("0" + err.Error())
-
-	} 
-
-	msg, err := serviceSetup.RegisterChain(C.GoString(name), C.GoString(info), initInfo.ChannelID)
-	if err!= nil{
-		return C.CString("0" + err.Error())
-	}	
-	return C.CString("1"+"success"+msg)
-	// return C.CString("1")
-
-}
-//export Login
-func Login(name *C.char) *C.char{
-	err := sdkInit.Getidentity(environment[initInfo.ChannelID], C.GoString(name))
-	if err != nil {
-		return C.CString("0" + err.Error())
-
-	} 
-	err = sdkInit.CreateChannelClient(environment[initInfo.ChannelID],initInfo, C.GoString(name))
-
-	if err != nil {
-		return C.CString("0" + err.Error())
-
-	} 
-
-	// msg, err := serviceSetup.RegisterChain(C.GoString(name), C.GoString(info), initInfo.ChannelID)
-	// if err!= nil{
-	// 	return C.CString("0" + err.Error())
-	// }	
-	// return C.CString("1"+"success"+msg)
-	return C.CString("1"+"success")
-}
 
 //export Recharge
 func Recharge(number *C.char) *C.char{
@@ -369,6 +378,15 @@ func GetAllUsers() *C.char{
 
 }
 
+//export UpdateTask
+func UpdateTask(taskid, hash *C.char) *C.char{
+	msg, err := serviceSetup.Updatetask(C.GoString(taskid), C.GoString(hash), initInfo.ChannelID)
+	if err != nil {
+        return C.CString("0" + err.Error())
+	} else {
+		return C.CString("1"+msg)
+	}
+}
 
 func main() {
 	// Start()
