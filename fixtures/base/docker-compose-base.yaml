@@ -65,6 +65,14 @@ services:
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.orgreq.crowd.com:7051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.orgreq.crowd.com:7051
       - CORE_PEER_LOCALMSPID=OrgReqMSP
+
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
+      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
+      # provide the credentials for ledger to connect to CouchDB.  The username and password must
+      # match the username and password set for the associated CouchDB.
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
     volumes:
         - /var/run/:/host/var/run/
         - ../crypto-config/peerOrganizations/orgreq.crowd.com/peers/peer0.orgreq.crowd.com/msp:/etc/hyperledger/fabric/msp
@@ -85,6 +93,11 @@ services:
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.orgreq.crowd.com:7051
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.orgreq.crowd.com:7051
       - CORE_PEER_LOCALMSPID=OrgReqMSP
+
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
     volumes:
         - /var/run/:/host/var/run/
         - ../crypto-config/peerOrganizations/orgreq.crowd.com/peers/peer1.orgreq.crowd.com/msp:/etc/hyperledger/fabric/msp
@@ -112,7 +125,6 @@ services:
   #   volumes:
   #   - ../crypto-config/peerOrganizations/orgwork.crowd.com/ca/:/etc/hyperledger/fabric-ca-server-config
 
-
   peer0.orgwork.crowd.com:
     container_name: peer0.orgwork.crowd.com
     extends:
@@ -124,6 +136,10 @@ services:
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.orgwork.crowd.com:7051
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.orgwork.crowd.com:7051
       - CORE_PEER_LOCALMSPID=OrgWorkMSP
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
     volumes:
         - /var/run/:/host/var/run/
         - ../crypto-config/peerOrganizations/orgwork.crowd.com/peers/peer0.orgwork.crowd.com/msp:/etc/hyperledger/fabric/msp
@@ -144,6 +160,11 @@ services:
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.orgwork.crowd.com:7051
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.orgwork.crowd.com:7051
       - CORE_PEER_LOCALMSPID=OrgWorkMSP
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb3:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+
     volumes:
         - /var/run/:/host/var/run/
         - ../crypto-config/peerOrganizations/orgwork.crowd.com/peers/peer1.orgwork.crowd.com/msp:/etc/hyperledger/fabric/msp

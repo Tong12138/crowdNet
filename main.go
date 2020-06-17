@@ -19,7 +19,7 @@ const (
 	configFile  = "Demo/config.yaml"
 
 	initialized = false
-	SimpleCC    = "crowdchain3"
+	SimpleCC    = "crowdchain5"
 )
 
 var environment map[string]*sdkInit.Environ

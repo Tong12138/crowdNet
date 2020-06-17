@@ -61,6 +61,12 @@ type EmbeddedSquash struct {
 	Vunique string
 }
 
+type EmbeddedAndNamed struct {
+	Basic
+	Named   Basic
+	Vunique string
+}
+
 type SliceAlias []string
 
 type EmbeddedSlice struct {
@@ -145,6 +151,21 @@ type Tagged struct {
 type Remainder struct {
 	A     string
 	Extra map[string]interface{} `mapstructure:",remain"`
+}
+
+type StructWithOmitEmpty struct {
+	VisibleStringField string                 `mapstructure:"visible-string"`
+	OmitStringField    string                 `mapstructure:"omittable-string,omitempty"`
+	VisibleIntField    int                    `mapstructure:"visible-int"`
+	OmitIntField       int                    `mapstructure:"omittable-int,omitempty"`
+	VisibleFloatField  float64                `mapstructure:"visible-float"`
+	OmitFloatField     float64                `mapstructure:"omittable-float,omitempty"`
+	VisibleSliceField  []interface{}          `mapstructure:"visible-slice"`
+	OmitSliceField     []interface{}          `mapstructure:"omittable-slice,omitempty"`
+	VisibleMapField    map[string]interface{} `mapstructure:"visible-map"`
+	OmitMapField       map[string]interface{} `mapstructure:"omittable-map,omitempty"`
+	NestedField        *Nested                `mapstructure:"visible-nested"`
+	OmitNestedField    *Nested                `mapstructure:"omittable-nested,omitempty"`
 }
 
 type TypeConversionResult struct {
@@ -330,6 +351,49 @@ func TestBasic_Struct(t *testing.T) {
 	}
 	if !reflect.DeepEqual(result, expected) {
 		t.Fatalf("bad: %#v", result)
+	}
+}
+
+func TestBasic_interfaceStruct(t *testing.T) {
+	t.Parallel()
+
+	input := map[string]interface{}{
+		"vstring": "foo",
+	}
+
+	var iface interface{} = &Basic{}
+	err := Decode(input, &iface)
+	if err != nil {
+		t.Fatalf("got an err: %s", err)
+	}
+
+	expected := &Basic{
+		Vstring: "foo",
+	}
+	if !reflect.DeepEqual(iface, expected) {
+		t.Fatalf("bad: %#v", iface)
+	}
+}
+
+// Issue 187
+func TestBasic_interfaceStructNonPtr(t *testing.T) {
+	t.Parallel()
+
+	input := map[string]interface{}{
+		"vstring": "foo",
+	}
+
+	var iface interface{} = Basic{}
+	err := Decode(input, &iface)
+	if err != nil {
+		t.Fatalf("got an err: %s", err)
+	}
+
+	expected := Basic{
+		Vstring: "foo",
+	}
+	if !reflect.DeepEqual(iface, expected) {
+		t.Fatalf("bad: %#v", iface)
 	}
 }
 
@@ -597,9 +661,12 @@ func TestDecode_EmbeddedSquashConfig(t *testing.T) {
 	input := map[string]interface{}{
 		"vstring": "foo",
 		"vunique": "bar",
+		"Named": map[string]interface{}{
+			"vstring": "baz",
+		},
 	}
 
-	var result Embedded
+	var result EmbeddedAndNamed
 	config := &DecoderConfig{
 		Squash: true,
 		Result: &result,
@@ -621,6 +688,66 @@ func TestDecode_EmbeddedSquashConfig(t *testing.T) {
 
 	if result.Vunique != "bar" {
 		t.Errorf("vunique value should be 'bar': %#v", result.Vunique)
+	}
+
+	if result.Named.Vstring != "baz" {
+		t.Errorf("Named.vstring value should be 'baz': %#v", result.Named.Vstring)
+	}
+}
+
+func TestDecodeFrom_EmbeddedSquashConfig(t *testing.T) {
+	t.Parallel()
+
+	input := EmbeddedAndNamed{
+		Basic:   Basic{Vstring: "foo"},
+		Named:   Basic{Vstring: "baz"},
+		Vunique: "bar",
+	}
+
+	result := map[string]interface{}{}
+	config := &DecoderConfig{
+		Squash: true,
+		Result: &result,
+	}
+	decoder, err := NewDecoder(config)
+	if err != nil {
+		t.Fatalf("got an err: %s", err.Error())
+	}
+
+	err = decoder.Decode(input)
+	if err != nil {
+		t.Fatalf("got an err: %s", err.Error())
+	}
+
+	if _, ok := result["Basic"]; ok {
+		t.Error("basic should not be present in map")
+	}
+
+	v, ok := result["Vstring"]
+	if !ok {
+		t.Error("vstring should be present in map")
+	} else if !reflect.DeepEqual(v, "foo") {
+		t.Errorf("vstring value should be 'foo': %#v", v)
+	}
+
+	v, ok = result["Vunique"]
+	if !ok {
+		t.Error("vunique should be present in map")
+	} else if !reflect.DeepEqual(v, "bar") {
+		t.Errorf("vunique value should be 'bar': %#v", v)
+	}
+
+	v, ok = result["Named"]
+	if !ok {
+		t.Error("Named should be present in map")
+	} else {
+		named := v.(map[string]interface{})
+		v, ok := named["Vstring"]
+		if !ok {
+			t.Error("Named: vstring should be present in map")
+		} else if !reflect.DeepEqual(v, "baz") {
+			t.Errorf("Named: vstring should be 'baz': %#v", v)
+		}
 	}
 }
 
@@ -1827,6 +1954,32 @@ func TestDecodeTable(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"struct with omitempty tag return non-empty values",
+			&struct {
+				VisibleField interface{} `mapstructure:"visible"`
+				OmitField    interface{} `mapstructure:"omittable,omitempty"`
+			}{
+				VisibleField: nil,
+				OmitField:    "string",
+			},
+			&map[string]interface{}{},
+			&map[string]interface{}{"visible": nil, "omittable": "string"},
+			false,
+		},
+		{
+			"struct with omitempty tag ignore empty values",
+			&struct {
+				VisibleField interface{} `mapstructure:"visible"`
+				OmitField    interface{} `mapstructure:"omittable,omitempty"`
+			}{
+				VisibleField: nil,
+				OmitField:    nil,
+			},
+			&map[string]interface{}{},
+			&map[string]interface{}{"visible": nil},
+			false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -1939,6 +2092,11 @@ func TestDecodeMetadata(t *testing.T) {
 func TestMetadata(t *testing.T) {
 	t.Parallel()
 
+	type testResult struct {
+		Vfoo string
+		Vbar BasicPointer
+	}
+
 	input := map[string]interface{}{
 		"vfoo": "foo",
 		"vbar": map[string]interface{}{
@@ -1951,7 +2109,7 @@ func TestMetadata(t *testing.T) {
 	}
 
 	var md Metadata
-	var result Nested
+	var result testResult
 	config := &DecoderConfig{
 		Metadata: &md,
 		Result:   &result,
@@ -2115,6 +2273,75 @@ func TestWeakDecodeMetadata(t *testing.T) {
 	sort.Strings(md.Unused)
 	if !reflect.DeepEqual(md.Unused, expectedUnused) {
 		t.Fatalf("bad unused: %#v", md.Unused)
+	}
+}
+
+func TestDecode_StructTaggedWithOmitempty_OmitEmptyValues(t *testing.T) {
+	t.Parallel()
+
+	input := &StructWithOmitEmpty{}
+
+	var emptySlice []interface{}
+	var emptyMap map[string]interface{}
+	var emptyNested *Nested
+	expected := &map[string]interface{}{
+		"visible-string": "",
+		"visible-int":    0,
+		"visible-float":  0.0,
+		"visible-slice":  emptySlice,
+		"visible-map":    emptyMap,
+		"visible-nested": emptyNested,
+	}
+
+	actual := &map[string]interface{}{}
+	Decode(input, actual)
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("Decode() expected: %#v, got: %#v", expected, actual)
+	}
+}
+
+func TestDecode_StructTaggedWithOmitempty_KeepNonEmptyValues(t *testing.T) {
+	t.Parallel()
+
+	input := &StructWithOmitEmpty{
+		VisibleStringField: "",
+		OmitStringField:    "string",
+		VisibleIntField:    0,
+		OmitIntField:       1,
+		VisibleFloatField:  0.0,
+		OmitFloatField:     1.0,
+		VisibleSliceField:  nil,
+		OmitSliceField:     []interface{}{1},
+		VisibleMapField:    nil,
+		OmitMapField:       map[string]interface{}{"k": "v"},
+		NestedField:        nil,
+		OmitNestedField:    &Nested{},
+	}
+
+	var emptySlice []interface{}
+	var emptyMap map[string]interface{}
+	var emptyNested *Nested
+	expected := &map[string]interface{}{
+		"visible-string":   "",
+		"omittable-string": "string",
+		"visible-int":      0,
+		"omittable-int":    1,
+		"visible-float":    0.0,
+		"omittable-float":  1.0,
+		"visible-slice":    emptySlice,
+		"omittable-slice":  []interface{}{1},
+		"visible-map":      emptyMap,
+		"omittable-map":    map[string]interface{}{"k": "v"},
+		"visible-nested":   emptyNested,
+		"omittable-nested": &Nested{},
+	}
+
+	actual := &map[string]interface{}{}
+	Decode(input, actual)
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("Decode() expected: %#v, got: %#v", expected, actual)
 	}
 }
 
