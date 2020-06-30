@@ -45,8 +45,8 @@ func (t *ServiceSetup) RegisterChain(name, info, channelname string)(string, err
 	}
 	return string(response.TransactionID), nil
 }
-func (t *ServiceSetup) Recharge(num, channelname string)(string, error){
-	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "recharge", Args: [][]byte{[]byte(num)}}
+func (t *ServiceSetup) Recharge(username, num, channelname string)(string, error){
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "recharge", Args: [][]byte{[]byte(username),[]byte(num)}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
 	if err != nil{
 		return "", err
@@ -54,8 +54,8 @@ func (t *ServiceSetup) Recharge(num, channelname string)(string, error){
 	return string(response.TransactionID), nil
 }
 
-func (t *ServiceSetup) Addskills(skills, channelname string)(string, error){
-	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "userAddSkill", Args: [][]byte{[]byte(skills)}}
+func (t *ServiceSetup) Addskills(username, skills, channelname string)(string, error){
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "userAddSkill", Args: [][]byte{[]byte(username),[]byte(skills)}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
 	if err != nil{
 		return "", err
@@ -63,8 +63,26 @@ func (t *ServiceSetup) Addskills(skills, channelname string)(string, error){
 	return string(response.TransactionID), nil
 }
 
-func(t *ServiceSetup) Getuser(channelname string)(string, error){
-	req := channel.Request{ChaincodeID:t.ChaincodeID, Fcn:"userQuery", Args:[][]byte{}}
+
+
+func(t *ServiceSetup) Getuser(username, channelname string)(string, error){
+	// querystring := "{\"selector\":{\"user_name\":\""+username+"\"}, \"use_index\":[\"_design/indexUserNameDoc\", \"indexUserName\"]}"
+	// req := channel.Request{ChaincodeID:t.ChaincodeID, Fcn:"userQueryCouchdb", Args:[][]byte{[]byte(querystring) }}
+	// response,err := (*(t.Environment))[channelname].ChannelClient.Query(req)
+	// if err != nil{
+	// 	return "", err
+	// }
+	// return string(response.Payload), nil
+	req := channel.Request{ChaincodeID:t.ChaincodeID, Fcn:"userQuery", Args:[][]byte{[]byte(username)}}
+	response,err := (*(t.Environment))[channelname].ChannelClient.Query(req)
+	if err != nil{
+		return "", err
+	}
+	return string(response.Payload), nil
+}
+
+func(t *ServiceSetup) Getprofile(username, channelname string)(string, error){
+	req := channel.Request{ChaincodeID:t.ChaincodeID, Fcn:"profileQuery", Args:[][]byte{[]byte(username)}}
 	response,err := (*(t.Environment))[channelname].ChannelClient.Query(req)
 	if err != nil{
 		return "", err
@@ -83,10 +101,10 @@ func(t * ServiceSetup) Getusers(channelname string)(string, error){
 }
 
 
-func (t *ServiceSetup) Posttask(Name, idd, Type, detail, reward,  requirement, channelname  string, posttime, receivetime,  deadline time.Time)(string, error){
+func (t *ServiceSetup) Posttask(username, Name, idd, Type, detail, reward,  requirement, channelname  string, posttime, receivetime,  deadline time.Time)(string, error){
 
     // start := time.Now()
-	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskPost", Args: [][]byte{[]byte(Name), []byte(idd), []byte(Type), []byte(detail),[]byte(reward), []byte(posttime.Format("2006-01-02 15:04:05")), []byte(receivetime.Format("2006-01-02 15:04:05")), []byte(deadline.Format("2006-01-02 15:04:05")), []byte(requirement)}}
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskPost", Args: [][]byte{[]byte(username), []byte(Name), []byte(idd), []byte(Type), []byte(detail),[]byte(reward), []byte(posttime.Format("2006-01-02 15:04:05")), []byte(receivetime.Format("2006-01-02 15:04:05")), []byte(deadline.Format("2006-01-02 15:04:05")), []byte(requirement)}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
 
 	if err != nil{
@@ -97,45 +115,45 @@ func (t *ServiceSetup) Posttask(Name, idd, Type, detail, reward,  requirement, c
 	return string(response.TransactionID), nil
 }
 
-func (t *ServiceSetup) Recievetask(taskid, channelname string, recievetime time.Time)(string, error){
-	start := time.Now()
-	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskReceive", Args: [][]byte{[]byte(taskid), []byte(recievetime.Format("2006-01-02 15:04:05"))}}
+func (t *ServiceSetup) Recievetask(username, taskid, channelname string, recievetime time.Time)(string, error){
+	// start := time.Now()
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskReceive", Args: [][]byte{[]byte(username), []byte(taskid), []byte(recievetime.Format("2006-01-02 15:04:05"))}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
 
 	if err != nil{
 		return "", err
 	}
 
-    end := time.Now()
-    fmt.Println(end.Sub(start))
+    // end := time.Now()
+    // fmt.Println(end.Sub(start))
 	return string(response.TransactionID), nil
 }
 
-func (t *ServiceSetup) Alloreward(taskid, workerid, rate, channelname string, allotime time.Time)(string, error){
-	start := time.Now()
-	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "rewardAllocate", Args: [][]byte{[]byte(taskid), []byte(workerid), []byte(rate), []byte(allotime.Format("2006-01-02 15:04:05"))}}
+func (t *ServiceSetup) Alloreward(username, taskid, workerid, rate, channelname string, allotime time.Time)(string, error){
+	// start := time.Now()
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "rewardAllocate", Args: [][]byte{[]byte(username),[]byte(taskid), []byte(workerid), []byte(rate), []byte(allotime.Format("2006-01-02 15:04:05"))}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
 
 	if err != nil{
 		return "", err
 	}
 
-    end := time.Now()
-    fmt.Println(end.Sub(start))
+    // end := time.Now()
+    // fmt.Println(end.Sub(start))
 	return string(response.TransactionID), nil
 }
 
-func (t *ServiceSetup) Committask(taskid, solution, channelname string, submittime time.Time)(string, error){
-	start := time.Now()
-	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskCommit", Args: [][]byte{[]byte(taskid), []byte(solution),  []byte(submittime.Format("2006-01-02 15:04:05"))}}
+func (t *ServiceSetup) Committask(username, taskid, solution, channelname string, submittime time.Time)(string, error){
+	// start := time.Now()
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: "taskCommit", Args: [][]byte{[]byte(username),[]byte(taskid), []byte(solution),  []byte(submittime.Format("2006-01-02 15:04:05"))}}
 	response, err:= (*(t.Environment))[channelname].ChannelClient.Execute(req)
 
 	if err != nil{
 		return "", err
 	}
 
-    end := time.Now()
-    fmt.Println(end.Sub(start))
+    // end := time.Now()
+    // fmt.Println(end.Sub(start))
 	return string(response.TransactionID), nil
 }
 

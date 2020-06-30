@@ -1,12 +1,18 @@
 //main.go
 
 package main
+
+/*
+#include <stdio.h>
+#include <stdlib.h>
+*/
 import "C"
 
 import (
 	"fmt"
 	"os"
 	"time"
+	"strings"
 
 	"github.com/hyperledger/crowdsourcing/Demo/sdkInit"
 	"github.com/hyperledger/crowdsourcing/Demo/service"
@@ -19,7 +25,7 @@ const (
 	configFile  = "Demo/config.yaml"
 
 	initialized = false
-	SimpleCC    = "crowdchain5"
+	SimpleCC    = "crowdchain12"
 )
 
 var environment map[string]*sdkInit.Environ
@@ -81,57 +87,51 @@ func Start(){
 
 	//enroll fabric CA
 	sdkInit.Enroll(environment[initInfo.ChannelID], "registrar", "adminpw")
-
-	// Enroll(C.CString("admin"), C.CString("adminpw"))
-	// Register(C.CString("userwang"), C.CString("yyt"))
-    // Enroll(C.CString("userwang"), C.CString("yyt"))
-
 }
 
 //export Set
 func Set(){
 // =================SETINFO
 	
+    sdkInit.Register(environment[initInfo.ChannelID], "testuser1", "aaaaa")
 
+
+    Enroll(C.CString("testuser1"), C.CString("aaaaa"), C.CString("jjjj"))
+
+    Login(C.CString("testuser1"))
+
+    GetUser(C.CString("testuser1"))
+
+ //    msg, err := serviceSetup.RegisterChain("testuser1", "aaaaa", initInfo.ChannelID)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// } else {
+	// 	fmt.Println(msg)
+	// }
+
+
+	// msg, err = serviceSetup.Recharge("2000", initInfo.ChannelID)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// } else {
+	// 	fmt.Println(msg)
+	// }
     
-    now := time.Now()
-	dd, _ := time.ParseDuration("24h")
-	dd1 := now.Add(dd)
-	dd2 := dd1.Add(dd)
-    
-
-    // Name id type detail reward posttime receivetime deadline requirement[]
-
-    msg, err := serviceSetup.RegisterChain("testuser1", "aaaaa", initInfo.ChannelID)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(msg)
-	}
-
-
-	msg, err = serviceSetup.Recharge("2000", initInfo.ChannelID)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(msg)
-	}
-    
-    msg, err = serviceSetup.Getusers(initInfo.ChannelID)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(msg)
-	}
+ //    msg, err = serviceSetup.Getusers(initInfo.ChannelID)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// } else {
+	// 	fmt.Println(msg)
+	// }
 
 
 
-	msg, err = serviceSetup.Posttask("task2", "bbbbb", "private", "this is detail", "30", "",initInfo.ChannelID, now, dd1, dd2)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(msg)
-	}
+	// msg, err = serviceSetup.Posttask("task2", "bbbbb", "private", "this is detail", "30", "",initInfo.ChannelID, now, dd1, dd2)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// } else {
+	// 	fmt.Println(msg)
+	// }
 
 	// app := controller.Application{
 	// 	Fabric: &serviceSetup,
@@ -195,18 +195,15 @@ func Login(name *C.char) *C.char{
 }
 
 //export PostTask
-func PostTask(name, taskid, tasktype, detail, reward, requirement, recievetime, deadline *C.char) *C.char{
+func PostTask(username, name, taskid, tasktype, detail, reward, requirement, recievetime, deadline *C.char) *C.char{
 	//publish a task
 
     now := time.Now()
-	// dd, _ := time.ParseDuration("24h")
-	// dd1 := now.Add(dd)
-	// dd2 := dd1.Add(dd)
 	local, _ := time.LoadLocation("Local")
 	dd1, _ := time.ParseInLocation("2006-01-02 15:04:05", C.GoString(recievetime), local)
 	dd2, _ := time.ParseInLocation("2006-01-02 15:04:05", C.GoString(deadline), local)
 
-	msg, err := serviceSetup.Posttask(C.GoString(name), C.GoString(taskid), C.GoString(tasktype), C.GoString(detail), C.GoString(reward), C.GoString(requirement), initInfo.ChannelID, now, dd1, dd2)
+	msg, err := serviceSetup.Posttask(C.GoString(username),C.GoString(name), C.GoString(taskid), C.GoString(tasktype), C.GoString(detail), C.GoString(reward), C.GoString(requirement), initInfo.ChannelID, now, dd1, dd2)
 	if err != nil {
         return C.CString("0" + err.Error())
 	} else {
@@ -218,61 +215,62 @@ func PostTask(name, taskid, tasktype, detail, reward, requirement, recievetime, 
 
 //export PostPriTask
 func PostPriTask(name, taskid, tasktype, detail, reward, requirement, userid *C.char) *C.char{
-	err := serviceSetup.CreateNewChannel(C.GoString(taskid))
-	if err!=nil{
-		return C.CString("0"+ err.Error())
-	}
+	// err := serviceSetup.CreateNewChannel(C.GoString(taskid))
+	// if err!=nil{
+	// 	return C.CString("0"+ err.Error())
+	// }
 
-	// initInfo.ChannelID = C.GoString(taskid)
-	err = sdkInit.CreateChannelClient(environment[C.GoString(taskid)],initInfo, C.GoString(userid))
+	// // initInfo.ChannelID = C.GoString(taskid)
+	// err = sdkInit.CreateChannelClient(environment[C.GoString(taskid)],initInfo, C.GoString(userid))
 
-	if err != nil {
-		return C.CString("0" + err.Error())
-
-	} 
-
-	// msg, err := serviceSetup.RegisterChain(C.GoString(userid), C.GoString(info), initInfo.ChannelID)
-	// if err!= nil{
+	// if err != nil {
 	// 	return C.CString("0" + err.Error())
-	// }	
-	// return C.CString("1"+"success"+msg)
+
+	// } 
+
+	// // msg, err := serviceSetup.RegisterChain(C.GoString(userid), C.GoString(info), initInfo.ChannelID)
+	// // if err!= nil{
+	// // 	return C.CString("0" + err.Error())
+	// // }	
+	// // return C.CString("1"+"success"+msg)
 
 
-    now := time.Now()
-	dd, _ := time.ParseDuration("24h")
-	dd1 := now.Add(dd)
-	dd2 := dd1.Add(dd)
+ //    now := time.Now()
+	// dd, _ := time.ParseDuration("24h")
+	// dd1 := now.Add(dd)
+	// dd2 := dd1.Add(dd)
 
-	msg, err := serviceSetup.Posttask(C.GoString(name), C.GoString(taskid), C.GoString(tasktype), C.GoString(detail), C.GoString(reward), C.GoString(requirement), C.GoString(taskid), now, dd1, dd2)
-	if err != nil {
-        return C.CString("0" + err.Error())
-	} else {
-		return C.CString("1"+msg)
-	}
+	// msg, err := serviceSetup.Posttask(C.GoString(name), C.GoString(taskid), C.GoString(tasktype), C.GoString(detail), C.GoString(reward), C.GoString(requirement), C.GoString(taskid), now, dd1, dd2)
+	// if err != nil {
+ //        return C.CString("0" + err.Error())
+	// } else {
+	// 	return C.CString("1"+msg)
+	// }
+	return (C.CString("1"))
 }
 
 //export RecieveTask
-func RecieveTask(taskid *C.char) *C.char{
+func RecieveTask(username, taskid *C.char) *C.char{
 	now := time.Now()
-	msg, err := serviceSetup.Recievetask(C.GoString(taskid), initInfo.ChannelID, now)
+	msg, err := serviceSetup.Recievetask(C.GoString(username), C.GoString(taskid), initInfo.ChannelID, now)
 	if err != nil {
         return C.CString("0" + err.Error())
 	} else {
-		end := time.Now()
-		fmt.Println(end.Sub(now))
+		// end := time.Now()
+		// fmt.Println(end.Sub(now))
 		return C.CString("1"+msg)
 	}
 }
 
 //export CommitTask
-func CommitTask(taskid, solution *C.char) *C.char{
+func CommitTask(username, taskid, solution *C.char) *C.char{
 	now := time.Now()
-	msg, err := serviceSetup.Committask(C.GoString(taskid), C.GoString(solution), initInfo.ChannelID, now)
+	msg, err := serviceSetup.Committask(C.GoString(username),C.GoString(taskid), C.GoString(solution), initInfo.ChannelID, now)
 	if err != nil {
         return C.CString("0" + err.Error())
 	} else {
-		end := time.Now()
-		fmt.Println(end.Sub(now))
+		// end := time.Now()
+		// fmt.Println(end.Sub(now))
 		
 		return C.CString("1"+msg)
 	}
@@ -280,14 +278,14 @@ func CommitTask(taskid, solution *C.char) *C.char{
 
 
 //export AlloReward
-func AlloReward(taskid, workerid, rate *C.char) *C.char{
+func AlloReward(username, taskid, workerid, rate *C.char) *C.char{
 	now := time.Now()
-	msg, err := serviceSetup.Alloreward(C.GoString(taskid), C.GoString(workerid), C.GoString(rate), initInfo.ChannelID, now)
+	msg, err := serviceSetup.Alloreward(C.GoString(username), C.GoString(taskid), C.GoString(workerid), C.GoString(rate), initInfo.ChannelID, now)
 	if err != nil {
         return C.CString("0" + err.Error())
 	} else {
-		end := time.Now()
-		fmt.Println(end.Sub(now))
+		// end := time.Now()
+		// fmt.Println(end.Sub(now))
 		return C.CString("1"+msg)
 	}
 }
@@ -296,10 +294,8 @@ func AlloReward(taskid, workerid, rate *C.char) *C.char{
 func GetTask(taskid *C.char) *C.char{
 	msg, err := serviceSetup.Gettask(C.GoString(taskid),initInfo.ChannelID)
 	if err != nil {
-		// fmt.Println(err)
 		return C.CString(err.Error())
 	} else {
-		// fmt.Println(msg)
 		return C.CString(msg)
 	}
 
@@ -334,8 +330,8 @@ func GetAllTasks() *C.char{
 
 
 //export Recharge
-func Recharge(number *C.char) *C.char{
-	msg, err := serviceSetup.Recharge(C.GoString(number), initInfo.ChannelID)
+func Recharge(username, number *C.char) *C.char{
+	msg, err := serviceSetup.Recharge(C.GoString(username), C.GoString(number), initInfo.ChannelID)
 	if err != nil {
 		return C.CString("0" + err.Error())
 	} else {
@@ -344,8 +340,8 @@ func Recharge(number *C.char) *C.char{
 }
 
 //export AddSkills
-func AddSkills(skills *C.char) *C.char{
-	msg, err := serviceSetup.Addskills(C.GoString(skills), initInfo.ChannelID)
+func AddSkills(username, skills *C.char) *C.char{
+	msg, err := serviceSetup.Addskills(C.GoString(username), C.GoString(skills), initInfo.ChannelID)
 	if err != nil {
 		return C.CString("0" + err.Error())
 	} else {
@@ -354,13 +350,22 @@ func AddSkills(skills *C.char) *C.char{
 }
 
 //export GetUser
-func GetUser() *C.char{
-	msg, err := serviceSetup.Getuser(initInfo.ChannelID)
+func GetUser(username *C.char) *C.char{
+	msg, err := serviceSetup.Getuser(C.GoString(username),initInfo.ChannelID)
 	if err != nil {
-		// fmt.Println(err)
 		return C.CString(err.Error())
 	} else {
-		// fmt.Println(msg)
+		msg = strings.Replace(msg, string(0), "", -1)
+		return C.CString(msg)
+	}
+}
+
+//export GetProfile
+func GetProfile(username *C.char) *C.char{
+	msg, err:= serviceSetup.Getprofile(C.GoString(username), initInfo.ChannelID)
+	if err!=nil{
+		return C.CString(err.Error())
+	}else{
 		return C.CString(msg)
 	}
 }
@@ -390,7 +395,7 @@ func UpdateTask(taskid, hash *C.char) *C.char{
 
 func main() {
 	// Start()
-
+    // Set()
     // Register(C.CString("userwang"), C.CString("yyt"))
     // Enroll(C.CString("userwang"), C.CString("yyt"))
     // sdkInit.Geidd(environment[initInfo.ChannelID])

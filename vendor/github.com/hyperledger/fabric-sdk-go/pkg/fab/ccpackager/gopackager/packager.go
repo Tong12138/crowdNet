@@ -61,7 +61,6 @@ func NewCCPackage(chaincodePath string, goPath string) (*resource.CCPackage, err
 	projDir = path.Join(gp, "src", chaincodePath)
 
 	logger.Debugf("projDir variable=%s", projDir)
-
 	// We generate the tar in two phases: First grab a list of descriptors,
 	// and then pack them into an archive.  While the two phases aren't
 	// strictly necessary yet, they pave the way for the future where we

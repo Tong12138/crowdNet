@@ -29,7 +29,7 @@ func Getkeys(username string){
 	//通过x509标准将得到的ras私钥序列化为ASN.1 的 DER编码字符串
 	x509_Privatekey:=x509.MarshalPKCS1PrivateKey(privateKey)
 	//创建一个用来保存私钥的以.pem结尾的文件
-	fp,_:=os.Create(username + "_PrivateKey.pem")
+	fp,_:=os.Create("PKI/" + username + "_PrivateKey.pem")
 	defer fp.Close()
 	//将私钥字符串设置到pem格式块中
 	pem_block:=pem.Block{
@@ -48,7 +48,7 @@ func Getkeys(username string){
 		Type:"csdn_PublicKey",
 		Bytes:x509_PublicKey,
 	}
-	file,_:=os.Create(username + "_PublicKey.pem")
+	file,_:=os.Create("PKI/" + username + "_PublicKey.pem")
 	defer file.Close()
 	//转码为pem并输出到文件中
 	pem.Encode(file,&pem_PublickKey)

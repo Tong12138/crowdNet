@@ -39,7 +39,7 @@ func UploadIPFS(str *C.char, public_key *C.char, flag *C.char) *C.char {
 }
 
 //export CatIPFS
-func CatIPFS(hash_c *C.char, filename_c *C.char, flag *C.char) *C.char {
+func CatIPFS(hash_c, filename_c , flag, private_key *C.char) *C.char {
 	sh = shell.NewShell("localhost:5001")
 	hash := C.GoString(hash_c)
 	filename := C.GoString(filename_c)
@@ -48,18 +48,19 @@ func CatIPFS(hash_c *C.char, filename_c *C.char, flag *C.char) *C.char {
 		fmt.Println(err)
 	}
 	body, err := ioutil.ReadAll(read)
+	fmt.Println(C.GoString(flag))
 	var data_de []byte
 	if C.GoString(flag) == "yes" {
-		data_de = RSA_decrypter("yyt_PrivateKey.pem", body)
+		data_de = RSA_decrypter(C.GoString(private_key), body)
 	} else {
 		data_de = body
 	}
 	err = ioutil.WriteFile(filename, data_de, 0666)
 	if err != nil {
-		panic(err)
+		// panic(err)
+		return C.CString("0" + err.Error())
 	}
-	result := string(data_de)
-	return C.CString(result)
+	return C.CString("1success")
 }
 
 //使用公钥进行加密 分段加密
@@ -73,7 +74,6 @@ func RSA_encrypter(path string,msg []byte)[]byte  {
 	fp.Read(buf)
 	//下面的操作是与创建秘钥保存时相反的
 	//pem解码
-	fmt.Println(buf[1:10])
 	block,_:=pem.Decode(buf)
 	//x509解码,得到一个interface类型的pub
 	pub, err:=x509.ParsePKIXPublicKey(block.Bytes)

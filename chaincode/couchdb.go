@@ -21,7 +21,7 @@ type Simple struct {
 
 type User struct {
 	VarType string `json:"vartype"`
-	Name string `json:"name"`
+	Name string `json:"user_name"`
 	Id string `json:"user_id"`
 	Account int `json:"account_balance"`
 	Reputation int `json:"reputation"`
@@ -36,7 +36,7 @@ type User struct {
 
 type Task struct {
 	VarType string `json:"vartype"`
-	Name string `json:"name"`
+	Name string `json:"task_name"`
 	Id string `json:"task_id"`
 	Type string `json:"task_type"` //1.competition 2.one2one 3.private
 	Detail string `json:"detail"`
@@ -90,6 +90,8 @@ func (t *Simple) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 		return recharge(stub, args)
 	case "userQuery":
 		return userQuery(stub, args)
+	case "profileQuery":
+		return profileQuery(stub, args)
 	case "taskQuery":
 		return taskQuery(stub, args)
 	case "recordQuery":
@@ -140,7 +142,7 @@ func userRegister(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	//验证数据是否存在 应该存在or不应该存在
 	userKey, err := stub.CreateCompositeKey("User", []string{
 		"user",
-		id,
+		name,
 	})
 	userCheck, err := stub.GetState(userKey)
 	if err == nil && len(userCheck) != 0 {
@@ -174,16 +176,17 @@ func userRegister(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 }
 
 func userAddSkill(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	creatorByte, err := stub.GetCreator()
-	si := &msp.SerializedIdentity{}
-	err = proto.Unmarshal(creatorByte, si)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("get id error %s", err))
-	}
-	userid := string(si.GetIdBytes())
+	// creatorByte, err := stub.GetCreator()
+	// si := &msp.SerializedIdentity{}
+	// err = proto.Unmarshal(creatorByte, si)
+	// if err != nil {
+	// 	return shim.Error(fmt.Sprintf("get id error %s", err))
+	// }
+	// userid := string(si.GetIdBytes())
+	name := args[0]
 	userKey, err := stub.CreateCompositeKey("User", []string{
 		"user",
-		userid,
+		name,
 	})
 	userCheck, err := stub.GetState(userKey)
 	if err != nil || len(userCheck) == 0 {
@@ -196,7 +199,7 @@ func userAddSkill(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	}
 	var build strings.Builder
 	build.WriteString(user.Skills)
-	for _, skill := range args {
+	for _, skill := range args[1:] {
 		build.WriteString(skill)
 		build.WriteString(",")
 		//user.Skills = append(user.Skills, skill)
@@ -214,16 +217,17 @@ func userAddSkill(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 }
 
 func userAddPro(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	creatorByte, err := stub.GetCreator()
-	si := &msp.SerializedIdentity{}
-	err = proto.Unmarshal(creatorByte, si)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("get id error %s", err))
-	}
-	userid := string(si.GetIdBytes())
+	// creatorByte, err := stub.GetCreator()
+	// si := &msp.SerializedIdentity{}
+	// err = proto.Unmarshal(creatorByte, si)
+	// if err != nil {
+	// 	return shim.Error(fmt.Sprintf("get id error %s", err))
+	// }
+	// userid := string(si.GetIdBytes())
+	name := args[0]
 	userKey, err := stub.CreateCompositeKey("User", []string{
 		"user",
-		userid,
+		name,
 	})
 	userCheck, err := stub.GetState(userKey)
 	if err != nil || len(userCheck) == 0 {
@@ -236,7 +240,7 @@ func userAddPro(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	}
 	var build strings.Builder
 	build.WriteString(user.Profession)
-	for _, profession := range args {
+	for _, profession := range args[1:] {
 		build.WriteString(profession)
 		build.WriteString(",")
 		//user.Profession = append(user.Profession, profession)
@@ -254,16 +258,17 @@ func userAddPro(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 }
 
 func userImport(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	creatorByte, err := stub.GetCreator()
-	si := &msp.SerializedIdentity{}
-	err = proto.Unmarshal(creatorByte, si)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("get id error %s", err))
-	}
-	userid := string(si.GetIdBytes())
+	// creatorByte, err := stub.GetCreator()
+	// si := &msp.SerializedIdentity{}
+	// err = proto.Unmarshal(creatorByte, si)
+	// if err != nil {
+	// 	return shim.Error(fmt.Sprintf("get id error %s", err))
+	// }
+	// userid := string(si.GetIdBytes())
+	name := args[0]
 	userKey, err := stub.CreateCompositeKey("User", []string{
 		"user",
-		userid,
+		name,
 	})
 	userCheck, err := stub.GetState(userKey)
 	if err != nil || len(userCheck) == 0 {
@@ -298,26 +303,27 @@ func userImport(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 //用户发布一个任务输入name detail，id根据用户以及任务序号自动生成，初始状态为未接收 参数：Name id type detail reward posttime receivetime deadline requirement[]
 func taskPost(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	//参数 Name detail
-	if len(args) < 8 {
-		return shim.Error("Incorrect number of arguments. At least 8")
+	if len(args) < 9 {
+		return shim.Error("Incorrect number of arguments. At least 9")
 	}
-	creatorByte, err := stub.GetCreator()
-	si := &msp.SerializedIdentity{}
-	err = proto.Unmarshal(creatorByte, si)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("get id error %s", err))
-	}
-	userid := string(si.GetIdBytes())
-	name := args[0]
-	taskid := args[1]
-	tasktype := args[2]
-	detail := args[3]
-	reward, _ := strconv.Atoi(args[4])
+	// creatorByte, err := stub.GetCreator()
+	// si := &msp.SerializedIdentity{}
+	// err = proto.Unmarshal(creatorByte, si)
+	// if err != nil {
+	// 	return shim.Error(fmt.Sprintf("get id error %s", err))
+	// }
+	// userid := string(si.GetIdBytes())
+	username := args[0]
+	name := args[1]
+	taskid := args[2]
+	tasktype := args[3]
+	detail := args[4]
+	reward, _ := strconv.Atoi(args[5])
 	local, _ := time.LoadLocation("Local")
-	posttime, _ := time.ParseInLocation("2006-01-02 15:04:05", args[5], local)
-	receivetime, _ := time.ParseInLocation("2006-01-02 15:04:05", args[6], local)
-	deadline, _ := time.ParseInLocation("2006-01-02 15:04:05", args[7], local)
-	if userid == "" || name == "" || detail == "" || taskid == "" || reward < 0 {
+	posttime, _ := time.ParseInLocation("2006-01-02 15:04:05", args[6], local)
+	receivetime, _ := time.ParseInLocation("2006-01-02 15:04:05", args[7], local)
+	deadline, _ := time.ParseInLocation("2006-01-02 15:04:05", args[8], local)
+	if username == "" || name == "" || detail == "" || taskid == "" || reward < 0 {
 		return shim.Error("Invalid args")
 	}
 	if tasktype != "competition" && tasktype != "one2one" && tasktype != "private" {
@@ -333,7 +339,7 @@ func taskPost(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	}
 	userKey, err := stub.CreateCompositeKey("User", []string{
 		"user",
-		userid,
+		username,
 	})
 	userCheck, err := stub.GetState(userKey)
 	if err != nil || len(userCheck) == 0 {
@@ -358,8 +364,8 @@ func taskPost(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	}
 	state := "posted"
 	var requirement []string
-	if len(args) > 8 {
-		requirement = args[8:]
+	if len(args) > 9 {
+		requirement = args[9:]
 	} else {
 		requirement = make([]string, 0)
 	}
@@ -373,7 +379,7 @@ func taskPost(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 		State: state,
 		ReceiveTime: receivetime,
 		Deadline: deadline,
-		RequesterId: userid,
+		RequesterId: username,
 		Candidate: make(map[string]string),
 		FinalWorker: "",
 		FinalSolution: "",
@@ -400,7 +406,7 @@ func taskPost(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	record := &WorkRecord{
 		VarType: "WorkRecord",
 		TaskId: taskid,
-		Requester: user.Id,
+		Requester: user.Name,
 		Worker: "no worker",
 		Type: "post",
 		Time: posttime,
@@ -412,7 +418,7 @@ func taskPost(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	recordKey, err := stub.CreateCompositeKey("WorkRecord", []string{
 		"record",
 		taskid,
-		user.Id,
+		user.Name,
 		"no worker",
 		"post",
 		posttime.Format("2006-01-02 15:04:05"),
@@ -430,19 +436,20 @@ func taskPost(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 //用户接收任务，需要根据任务id检查该任务是否存在，状态是否为未接收 参数：TaskID time
 func taskReceive(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	if len(args) != 2 {
+	if len(args) != 3 {
 		return shim.Error("Incorrect number of arguments. Expecting 2")
 	}
-	taskid := args[0]
+	taskid := args[1]
 	local, _ := time.LoadLocation("Local")
-	t, _ := time.ParseInLocation("2006-01-02 15:04:05", args[1], local)
-	creatorByte, err := stub.GetCreator()
-	si := &msp.SerializedIdentity{}
-	err = proto.Unmarshal(creatorByte, si)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("get id error %s", err))
-	}
-	workerid := string(si.GetIdBytes())
+	t, _ := time.ParseInLocation("2006-01-02 15:04:05", args[2], local)
+	// creatorByte, err := stub.GetCreator()
+	// si := &msp.SerializedIdentity{}
+	// err = proto.Unmarshal(creatorByte, si)
+	// if err != nil {
+	// 	return shim.Error(fmt.Sprintf("get id error %s", err))
+	// }
+	// workerid := string(si.GetIdBytes())
+	workerid := args[0]
 	if workerid == "" || taskid == "" {
 		return shim.Error("Invalid args")
 	}
@@ -544,20 +551,21 @@ func taskReceive(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 //参数：TaskID solution time    worker上传解决方案 需要修改：任务状态 任务解决方案
 func taskCommit(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	if len(args) != 3 {
+	if len(args) != 4 {
 		return shim.Error("Incorrect number of arguments. Expecting 3")
 	}
-	taskid := args[0]
-	solution := args[1]
+	taskid := args[1]
+	solution := args[2]
 	local, _ := time.LoadLocation("Local")
-	t, _ := time.ParseInLocation("2006-01-02 15:04:05", args[2], local)
-	creatorByte, err := stub.GetCreator()
-	si := &msp.SerializedIdentity{}
-	err = proto.Unmarshal(creatorByte, si)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("get id error %s", err))
-	}
-	workerid := string(si.GetIdBytes())
+	t, _ := time.ParseInLocation("2006-01-02 15:04:05", args[3], local)
+	// creatorByte, err := stub.GetCreator()
+	// si := &msp.SerializedIdentity{}
+	// err = proto.Unmarshal(creatorByte, si)
+	// if err != nil {
+	// 	return shim.Error(fmt.Sprintf("get id error %s", err))
+	// }
+	// workerid := string(si.GetIdBytes())
+	workerid := args[0]
 	if workerid == "" || taskid == "" {
 		return shim.Error("Invalid args")
 	}
@@ -681,24 +689,25 @@ func taskCommit(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 //参数：taskID workerid reward比例 time
 func rewardAllocate(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	if len(args) != 4 {
+	if len(args) != 5 {
 		return shim.Error("Incorrect number of arguments. Expecting 4")
 	}
-	taskid := args[0]
-	workerid := args[1]
-	rate, err := strconv.Atoi(args[2])
+	taskid := args[1]
+	workerid := args[2]
+	rate, err := strconv.Atoi(args[3])
 	if err != nil {
 		return shim.Error("Invalid rate!")
 	}
 	local, _ := time.LoadLocation("Local")
-	t, _ := time.ParseInLocation("2006-01-02 15:04:05", args[3], local)
-	creatorByte, err := stub.GetCreator()
-	si := &msp.SerializedIdentity{}
-	err = proto.Unmarshal(creatorByte, si)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("get id error %s", err))
-	}
-	requesterid := string(si.GetIdBytes())
+	t, _ := time.ParseInLocation("2006-01-02 15:04:05", args[4], local)
+	// creatorByte, err := stub.GetCreator()
+	// si := &msp.SerializedIdentity{}
+	// err = proto.Unmarshal(creatorByte, si)
+	// if err != nil {
+	// 	return shim.Error(fmt.Sprintf("get id error %s", err))
+	// }
+	// requesterid := string(si.GetIdBytes())
+	requesterid := args[0]
 	if requesterid == "" || workerid == "" || taskid == ""  {
 		return shim.Error("Invalid args")
 	}
@@ -860,23 +869,24 @@ func rewardAllocate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 
 //充值 参数：金额
 func recharge(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	if len(args) != 1 {
+	if len(args) != 2 {
 		return shim.Error("Incorrect number of arguments. Expecting 1")
 	}
-	amountstr := args[0]
-	creatorByte, err := stub.GetCreator()
-	si := &msp.SerializedIdentity{}
-	err = proto.Unmarshal(creatorByte, si)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("get id error %s", err))
-	}
-	userid := string(si.GetIdBytes())
-	if userid == "" || amountstr == "" {
+	username := args[0]
+	amountstr := args[1]
+	// creatorByte, err := stub.GetCreator()
+	// si := &msp.SerializedIdentity{}
+	// err = proto.Unmarshal(creatorByte, si)
+	// if err != nil {
+	// 	return shim.Error(fmt.Sprintf("get id error %s", err))
+	// }
+	// userid := string(si.GetIdBytes())
+	if username == "" || amountstr == "" {
 		return shim.Error("Invalid args")
 	}
 	userKey, err := stub.CreateCompositeKey("User", []string{
 		"user",
-		userid,
+		username,
 	})
 	userCheck, err := stub.GetState(userKey)
 	if err != nil || len(userCheck) == 0 {
@@ -905,6 +915,30 @@ func userQuery(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if len(args) != 1 {
 		return shim.Error("Incorrect number of arguments. Expecting 1")
 	}
+	userid := args[0]
+	if userid == "" {
+		return shim.Error("Invalid args")
+	}
+	userKey, err := stub.CreateCompositeKey("User", []string{
+		"user",
+		userid,
+	})
+	userCheck, err := stub.GetState(userKey)
+	if err != nil || len(userCheck) == 0 {
+		return shim.Error("User not found!")
+	}
+	return shim.Success(userCheck)
+}
+
+func profileQuery(stub shim.ChaincodeStubInterface, args []string) pb.Response{
+	//获取当前用户证书
+	// creatorByte, err := stub.GetCreator() //获取的是msp里面的signcerts
+	// si := &msp.SerializedIdentity{}
+	// err = proto.Unmarshal(creatorByte, si)
+	// if err != nil {
+	// 	return shim.Error(fmt.Sprintf("get id error %s", err))
+	// }
+	// id := string(si.GetIdBytes())
 	userid := args[0]
 	if userid == "" {
 		return shim.Error("Invalid args")
